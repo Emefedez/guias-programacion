@@ -69,17 +69,25 @@ La **programación modular** lleva la estructuración un paso más allá: divide
 
 ## 4. ¿Qué tres elementos definen a un objeto en programación orientada a objetos?
 
-**Identidad**: cada objeto es único y distinguible de los demás, identificado por su posición en memoria (referencia/dirección).
+-En el paradigma OOP, en memoria tenemos Objetos (instancias de clase). Se dice que trabajamos con Perros y Gatos, no necesariamente todos los Animales.
 
-**Estado**: representado por los valores de sus atributos en un momento dado. Dos objetos de la misma clase pueden tener estados diferentes.
+**Identidad**: cada objeto es único y distinguible de los demás, identificado por su posición en memoria (referencia/dirección). Puedo tener dos variables Punto cuyo `x` e `y` tienen el mismo valor, pero gracias a que cada uno tiene su propia identidad, puedo emplear el que considere conveniente (independientemente del estado que tengan!).
 
-**Comportamiento**: definido por los métodos que pueden ejecutarse sobre el objeto, que pueden cambiar su estado o devolver información sobre él.
+**Estado**: representado por los valores de sus **atributos** en un momento dado. Dos objetos de la misma clase pueden tener estados diferentes (El estado de un `Punto` concreto es lo que valgan su `x` e `y`).
+
+**Comportamiento**: definido por (el conjunto de los) los métodos que pueden ejecutarse sobre el objeto, que pueden cambiar su estado o devolver información sobre él. 
 
 ***
 
 ## 5. ¿Qué es una clase? ¿Es lo mismo que un objeto? ¿Qué es una instancia? ¿Todos los lenguajes orientados a objetos manejan el concepto de clase?
 
-Una **clase** es una plantilla o esquema abstracto que define la estructura (atributos) y el comportamiento (métodos) de un tipo de objeto. Un **objeto** es una entidad concreta que existe en memoria, creada a partir de esa clase. Un gato es un objeto de clase animal, con sus características como número de patas, cantidad de ternura, etc. Otro objeto de la misma clase puede ser el ornitorrinco. La **instancia** es exactamente lo mismo que un objeto: el resultado de crear una variable del tipo definido por la clase. Si la clase es el "plano" de una casa, cada objeto es una casa real construida según ese plano.
+Una **clase** es una plantilla o esquema abstracto que define la estructura (atributos) y el comportamiento (métodos) de un tipo de objeto.
+
+ Un **objeto** es una entidad concreta que existe en memoria, creada a partir de esa clase. Un gato es un objeto de clase animal, con sus características como número de patas, cantidad de ternura, etc. Otro objeto de la misma clase puede ser el ornitorrinco. 
+  
+ La **instancia** es exactamente lo mismo que un objeto: el resultado de crear una variable del tipo definido por la clase. Si la clase es el "plano" de una casa, cada objeto es una casa real construida según ese plano.
+
+  Puedo tener tantos objetos de una clase (aquí es cuando generalmente decimos instancia); Sea la clase `Coche(marca, año)`, dos instancias son `Coche(Mercedes,2009)`, `Coche(Mazda,2020)`.
 
 No todos los lenguajes orientados a objetos requieren clases en el sentido tradicional. Algunos lenguajes, como JavaScript (en su versión original) o Lua, utilizan **programación orientada a objetos basada en prototipos**, donde los objetos se crean directamente desde otros objetos (prototipos) sin necesidad de clases explícitas. Sin embargo, la mayoría de los lenguajes modernos (Java, C++, C#, Python) sí utilizan clases.
 
@@ -111,19 +119,42 @@ class Punto {
     int y;
     
     double calculaDistanciaAOrigen() {
-        return Math.sqrt(x * x + y * y);
+        return Math.sqrt(x * x + y * y); //se que, al estar dentro de la clase, puedo utilizar los valores que contiene la clase Punto
     }
 }
 
 public class Main {
     public static void main(String[] args) {
-        Punto p = new Punto();
-        p.x = 3;
-        p.y = 4;
+        Punto miPunto = new Punto();
+        miPunto.x = 3;
+        miPunto.y = 4;
         
-        System.out.println("Distancia al origen: " + p.calculaDistanciaAOrigen());
+        System.out.println("Distancia al origen: " + miPunto.calculaDistanciaAOrigen());
     }
 }
+```
+
+```C
+
+struct Punto {
+    int x;
+    int y;
+}
+
+double calculaDistanciaAOrigen(struct Punto p) {
+    //distancia de p a (0,0)
+    return sqrt((p.x * p.x)+(p.y * p.y));
+}
+
+
+void main() {
+    Punto miPunto;
+    miPunto.x = 5;
+    miPunto.y = 3;
+    calculaDistanciaAOrigen(miPunto);
+
+}
+
 ```
 
 **Compila y ejecuta con:**
