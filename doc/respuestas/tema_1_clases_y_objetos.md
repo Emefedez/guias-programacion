@@ -7,9 +7,37 @@ ESTAS RESPUESTAS HAN SIDO GENERADAS POR EL MODELO CLAUDE SONNET 4.5 COMO "DRAFT"
 
 **Encapsulación**: consiste en agrupar datos (atributos) y comportamiento (métodos) dentro de una misma unidad (clase), ocultando los detalles internos. Permite controlar el acceso mediante modificadores de visibilidad (public, private, protected).
 
-**Herencia**: permite que una clase derive de otra, heredando sus atributos y métodos. Facilita la reutilización de código y la creación de jerarquías conceptuales entre tipos de datos.
+Consiste principalmente en 2 cosas (más como un gran grupo con un subgrupo muy importante):
+1- Unir información y funciones (sobre esa información) en un mismo artefacto (Usamos clases en vez de structs, son básicamente structs mamadísimos con cosas como herencia, (2-) ocultar partes con private, etc... La "función" (el **método**) se encapsula dentro de la clase).
+
+**Herencia**: permite que una clase derive de otra, heredando sus atributos y métodos. Facilita la reutilización de código y la creación de jerarquías conceptuales entre tipos de datos (Perro y Gato heredan de Animal, Perro o Gato pueden tener una especialización adicional).
+
+La Herencia permite abstracción (recomendable) y reutilización (deprecado).
+
+```java
+    class Animal {
+        dormir();
+        ...
+    }
+```
+
+```java
+    
+    Perro perro = new Perro();
+    perro.ladrar();
+    perro.dormir();
+        
+    Gato gato = new Gato();
+    gato.maullar();
+    gato.dormir();
+        
+```
+
+
 
 **Polimorfismo**: es la capacidad de un objeto de adoptar múltiples formas. Permite que métodos con el mismo nombre tengan comportamientos diferentes según el contexto o la clase que los implemente (polimorfismo por sobrecarga o por sobrescritura).
+
+Misma función, distintas implementaciones en función del tipo.
 
 **Abstracción**: consiste en representar características esenciales de un objeto ocultando detalles innecesarios (manejar mejor los temas complejos) y facilitando la modificación y mantenimiento. Se logra mediante clases abstractas e interfaces, permitiendo trabajar con conceptos generales sin preocuparse por la implementación específica. Se podría decir que el resto de características son auxiliares a esta (Leer el índice de un libro es abstraerse del contenido, teniendo una visión global de mas alto nivel). 
 
@@ -24,10 +52,16 @@ ESTAS RESPUESTAS HAN SIDO GENERADAS POR EL MODELO CLAUDE SONNET 4.5 COMO "DRAFT"
 Java, Rust, C++ (que nació literalmente como C pero con orientación a objetos), C#.
 
 ***
+-> Saber si un lenguaje es compilado no es tan importante como que tenga comprobación estática de tipos.
+
+-> También si tienen o no tienen recolector de basura [Java y C# (Memory Safe) vs C++]. Rust es Memory Safe pero tampoco tiene recolector de basura, complica trabajar con el lenguaje pero da resultados muy seguros.
+
 
 ## 3. Los paradigmas anteriores a la POO, ¿Qué es la **programación estructurada**? y, todavía mejor, ¿Qué es la **programación modular**?
 
-La **programación estructurada** surgió en los años 60-70 como alternativa a la programación sin control de flujo (spaghetti code). Se basa en el uso de estructuras de control bien definidas (if-else, while, for) y en la división del código en bloques lógicos. El énfasis está en cómo ejecutar instrucciones de forma ordenada, no en organizar datos. Se conoce también como **programación procedural** y aún hoy en día mucha gente aboga por ella, por lo "limpio" que es un flujo donde la función es la unidad de ordenación.
+Primer lenguaje de programación con software **ensamblador** -> Secuencia de instrucciones (intención de programa) y saltos arbitrarios (da pie a muchas limitaciones, un for por ejemplo se hace con saltos hasta la misma función de memoria hasta que se cumpla cierta condición). Esto es considerado código spaghetti.
+
+La **programación estructurada** surgió en los años 60-70 como alternativa a la programación sin control de flujo (spaghetti code). Se basa en el uso de estructuras de control bien definidas (if-else, while, for) y en la división del código en bloques lógicos. El énfasis está en cómo ejecutar instrucciones de forma ordenada (no más saltos constantes a direcciones de memorias, claras condiciones fáciles de seguir en comparación), no en organizar datos. Se conoce también como **programación procedural** y aún hoy en día mucha gente aboga por ella, por lo "limpio" que es un flujo donde la función es la unidad de ordenación.
 
 La **programación modular** lleva la estructuración un paso más allá: divide el programa en módulos independientes y reutilizables, cada uno con una responsabilidad clara. Cada módulo puede tener sus propias variables (datos locales) y funciones que operan sobre esos datos. Sin embargo, la separación entre datos y operaciones sigue siendo explícita: pasas los datos a funciones que los manipulan. En C, esto se emula con estructuras de datos (struct) y funciones que reciben punteros a esas estructuras. La POO unifica este concepto: los objetos son módulos que combinan datos y comportamiento en una sola entidad.
 
