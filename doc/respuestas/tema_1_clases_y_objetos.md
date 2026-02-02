@@ -107,9 +107,30 @@ No es igual en todos los lenguajes: en C++, un objeto puede almacenarse en la pi
 
 Un **método** es una función definida dentro de una clase que opera sobre los objetos de esa clase. Puede acceder a los atributos del objeto (estado) e interactuar con otros métodos. En esencia, es similar a una función en C que recibe un puntero a una estructura (this implícito), pero con sintaxis integrada en el lenguaje.
 
-La **sobrecarga de métodos (method overloading)** permite definir múltiples métodos con el mismo nombre dentro de la misma clase, siempre que tengan diferentes **firmas**: distinto número de parámetros, tipos diferentes, o ambos. El compilador elige automáticamente cuál ejecutar según los argumentos pasados. Por ejemplo, puedes tener un constructor Punto() sin parámetros y otro Punto(int x, int y). En C no existe sobrecarga; deberías crear funciones distintas con nombres diferentes (ej: Punto_crear() y Punto_crearCon()).
+La **sobrecarga de métodos (method overloading)** permite definir múltiples métodos con el mismo nombre dentro de la misma clase (ojo: **no confundir con shadowing**, que es cuando una variable en un ámbito interno oculta a otra del mismo nombre en un ámbito externo), siempre que tengan diferentes **firmas**: distinto número de parámetros, tipos diferentes, o ambos. El compilador elige automáticamente cuál ejecutar según los argumentos pasados. Por ejemplo, puedes tener un constructor Punto() sin parámetros y otro Punto(int x, int y). En C no existe sobrecarga; deberías crear funciones distintas con nombres diferentes (ej: Punto_crear() y Punto_crearCon()).
 
 ***
+
+```java
+
+class Calculadora {
+    //sin estado
+
+    int sumar (int a, int b) { //suma1
+        return a+b;
+    }
+
+    double sumar(double a, double b) { //suma2
+        return a+b;
+    }
+
+    main() {
+        Calculadora miCalculadora = new Calculadora();
+
+        int primeraSuma = miCalculadora.sumar(4,6); //El compilador sabe que suma1 es el método a usar
+        int segundaSuma = miCalculadora.sumar(4.6,5.2) //Emplea suma2
+    }
+}
 
 ## 8. Ejemplo mínimo de clase en Java, que se llame Punto, con dos atributos, x e y, con un método que se llame `calculaDistanciaAOrigen`, que calcule la distancia a la posición 0,0. Por sencillez, los atributos deben tener visibilidad por defecto. Crea además un ejemplo de uso con una instancia y uso del método
 
