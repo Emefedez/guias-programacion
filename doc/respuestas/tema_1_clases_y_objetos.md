@@ -11,7 +11,11 @@ ESTAS RESPUESTAS HAN SIDO GENERADAS POR EL MODELO CLAUDE SONNET 4.5 COMO "DRAFT"
 
 **Polimorfismo**: es la capacidad de un objeto de adoptar múltiples formas. Permite que métodos con el mismo nombre tengan comportamientos diferentes según el contexto o la clase que los implemente (polimorfismo por sobrecarga o por sobrescritura).
 
-**Abstracción**: consiste en representar características esenciales de un objeto ocultando detalles innecesarios. Se logra mediante clases abstractas e interfaces, permitiendo trabajar con conceptos generales sin preocuparse por la implementación específica.
+**Abstracción**: consiste en representar características esenciales de un objeto ocultando detalles innecesarios (manejar mejor los temas complejos) y facilitando la modificación y mantenimiento. Se logra mediante clases abstractas e interfaces, permitiendo trabajar con conceptos generales sin preocuparse por la implementación específica. Se podría decir que el resto de características son auxiliares a esta (Leer el índice de un libro es abstraerse del contenido, teniendo una visión global de mas alto nivel). 
+
+-> Ejemplo de modificación con abstracción: si quiero cambiar el índice de un libro (modo 1), no me importa si cambia el contenido de cada apartado (modo 2).
+
+-> Otro ejemplo, puede cambiar el funcionamiento interno de la API pero que las llamadas externas funcionen igual.
 
 ***
 
