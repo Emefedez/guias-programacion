@@ -292,10 +292,14 @@ public class Main {
         miPunto.x = 10;
         miPunto.y = 20;
         */
-        System.out.println("miPunto:" + miPunto.x + "\n" + miPunto.y);
+
+        // Sin el toString custom:
+        //System.out.println("miPunto:" + "(" + miPunto.x + "," + miPunto.y+")");
+
+        //con el toString custom:
+        System.out.println("miPunto:" + miPunto);
         //Salida:
-        //miPunto: 5
-        //5
+        //miPunto: (5,5)
     }
 }
 ```
@@ -318,6 +322,10 @@ class Punto {
     Punto (int generic) { //de pasar un solo argumento, entonces aplicamos ese valor a x e y.
         this.x = generic;
         this.y = generic;
+    }
+
+    String toString() {
+        //En ejercicio 12
     }
 }
 ```
@@ -357,6 +365,17 @@ En C, no existen constructores; deberías crear una función `Empleado_crear()` 
 ## 12. ¿Qué es la referencia `this`? ¿Se llama igual en todos los lenguajes? Pon un ejemplo del uso de `this` en la clase `Punto`
 
 La referencia **`this`** es una variable especial disponible **dentro de los métodos** de una clase que siempre apunta al **objeto actual** sobre el que se está ejecutando ese método. Cuando se llama a un método de un objeto, Java automáticamente pasa una referencia a ese objeto como primer parámetro **invisible** llamado `this`. Es como si cada método recibiera un parámetro adicional que dice "este es el objeto concreto con el que estás trabajando".
+
+**--> Java prioriza pasar el `.this` sin petición del usuario, si sabe que nos referimos a la instancia actual, se añade en tiempo de compilación de manera automática** (el `this` es útil para desambiguar y aclarar).
+
+```java
+String toString() {
+        int j=10; //no tocamos ni x ni y, así que no hay duda sobre cuál retornar.
+        return "("+ x +"," + y +")";
+        // OJO!!!!
+        //return "("+x+"," +y+")"; == return "("+this.x+"," +this.y+")";
+    }
+```
 
 Piensa en `this` como un "**yo**" del objeto. Cuando dentro de un método escribes `x = 5`, Java no sabe si te refieres al parámetro `x` de ese método o al atributo `x` del objeto. **`this.x = 5`** deja claro que hablas del atributo `x` **del objeto actual**. Sin `this`, hay ambigüedad entre parámetros locales y atributos de clase.
 
@@ -404,6 +423,7 @@ p1.desplazar(2, -1);  // Java hace:
 ```
 
 **Resumen visual:**
+
 ```
 Cuando ejecutas: p1.desplazar(2, -1)
 Java realmente ejecuta: desplazar(p1, 2, -1)
@@ -429,11 +449,8 @@ class Punto {
         this.y = y;
     }
     
-    double calculaDistanciaAOrigen() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
     
-    double distanciaA(Punto otro) {
+    double distanciaA(Punto otro) { 
         int dx = this.x - otro.x;
         int dy = this.y - otro.y;
         return Math.sqrt(dx * dx + dy * dy);
@@ -443,7 +460,16 @@ class Punto {
 // Uso
 Punto p1 = new Punto(0, 0);
 Punto p2 = new Punto(3, 4);
-System.out.println(p1.distanciaA(p2));  // Imprime 5.0
+System.out.println(p1.distanciaA(p2));  
+
+//¿¿Ves la ventaja respecto a C++??
+//No hace falta hacer una función como double distanciaEntre(struct Punto punto1, struct Punto punto2) y tenerlo por ahí.
+
+    //C-style:
+    // --> distanciaEntre(p1,p2);
+
+    //En orientación a objetos es tan fácil como:
+    //--> p1.distanciaA(p2);
 ```
 
 Aún así en `distanciaA` no necesitamos `this` puesto que otro.x viene de otro objeto y por defecto asumimos que una variable es interna a un método.
@@ -595,5 +621,3 @@ int main() {
 Esta es la "magia" que Java oculta: el compilador convierte tus llamadas a métodos en llamadas a funciones que reciben un puntero al objeto implícitamente. Cuando escribes `p.metodo()`, Java internamente hace algo equivalente a `Punto_metodo(&p)`. La orientación a objetos no es un concepto mágico; es **azúcar sintáctico sobre programación estructurada**: combina datos y funciones en módulos con sintaxis integrada, en lugar de pasarlos manualmente como en C.
 
 ***
-
-**Documento completado y formateado correctamente.**
