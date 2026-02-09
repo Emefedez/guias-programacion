@@ -67,15 +67,15 @@ La **programación modular** lleva la estructuración un paso más allá: divide
 
 ***
 
-## 4. ¿Qué tres elementos definen a un objeto en programación orientada a objetos?
+## 4. ¿Qué tres elementos definen a un objeto en programación orientada a objetos? (las 3 partes de un objeto)
 
--En el paradigma OOP, en memoria tenemos Objetos (instancias de clase). Se dice que trabajamos con Perros y Gatos, no necesariamente todos los Animales.
+-En el paradigma OOP, en memoria tenemos Objetos (insIdentidadtancias de clase). Se dice que trabajamos con Perros y Gatos, no necesariamente todos los Animales.
 
 **Identidad**: cada objeto es único y distinguible de los demás, identificado por su posición en memoria (referencia/dirección). Puedo tener dos variables Punto cuyo `x` e `y` tienen el mismo valor, pero gracias a que cada uno tiene su propia identidad, puedo emplear el que considere conveniente (independientemente del estado que tengan!).
 
 **Estado**: representado por los valores de sus **atributos** en un momento dado. Dos objetos de la misma clase pueden tener estados diferentes (El estado de un `Punto` concreto es lo que valgan su `x` e `y`).
 
-**Comportamiento**: definido por (el conjunto de los) los métodos que pueden ejecutarse sobre el objeto, que pueden cambiar su estado o devolver información sobre él. 
+**Comportamiento**: definido por (el conjunto de los) los **métodos** que pueden ejecutarse sobre el objeto, que pueden cambiar su estado o devolver información sobre él. 
 
 ***
 
@@ -95,7 +95,29 @@ No todos los lenguajes orientados a objetos requieren clases en el sentido tradi
 
 ## 6. ¿Dónde se almacenan en memoria los objetos? ¿Es igual en todos los lenguajes? ¿Qué es la **recolección de basura**?
 
-En Java, los objetos se almacenan en el **heap** (montículo), un área de memoria dinámica que gestiona el programa en tiempo de ejecución. Las variables que hacen referencia a esos objetos (referencias) se almacenan en la **pila** (stack) si son locales. Esto es diferente a C/C++, donde decidir si usar stack o heap es responsabilidad del programador: en C, un struct se puede declarar en la pila, o asignar dinámicamente con malloc en el heap.
+En Java, los objetos se almacenan en el **heap** (montículo), un área de memoria dinámica que gestiona el programa en tiempo de ejecución; esto **no es así en todos los lenguajes**, en otros se permite también en el stack (casi CASI todos los lenguajes permiten crear en el heap).
+
+### Principales ventajas de emplear el heap: 
+
+**--> Memoria dinámica** (se decide lo que se ocupa en tiempo de ejecución, esta memoria no estática permite una mayor optimización, no se desperdicia un espacio reservado si no se necesita).
+
+**--> La vida de los objetos** que están en el heap no depende de la vida de la función que los crea.
+
+### Principales desventajas de emplear el heap: 
+
+**--> Hay que encargarse de liberar memoria no usada del heap**, los objetos no se borran automáticamente. Hay varias maneras.
+
+ 1. **Manual -->** Difícil y propenso a bugs (`memory leaks`). Por ejemplo si manejamos un listado de 100 alumnos y con el tiempo al cambiarlos se va realentizando, capaz los objetos transitorios utilizados para que el listado se vea no son eliminados porque no te diste cuenta.
+   -  Los lenguajes no seguros de memoria son los que (en este aspecto) se gestionan de manera manual.
+   -  Son difíciles de debuggear, porque el programa puede funcionar en algunos ordenes y no en otros.
+   
+ 2.  **Recolector de basura -->** El recolector de basura es un proceso que elimina los procesos que no se volverán a usar.
+   - Los lenguajes con recolector son más lentos, el recolector se ejecuta siempre, incluso cuando no tiene nada que liberar comprueba.
+   - Para sistemas `data intensive` (lo pesado son los datos, no el propio proceso de CPU), suele compensar usar lenguajes como Java, pues es de los sistemas con recolector más rápidos y la seguridad tiene un valor más importante que la mejora despreciable de rendimiento que un lenguaje como C (sí se nota más el recolector en contextos como videojuegos en tiempo real).
+   - Los objetos del heap a los que el programa no puede acceder son considerados `basura` y son lo eliminado.
+
+
+ Las variables que hacen referencia a esos objetos (referencias) se almacenan en la **stack** (pila) si son locales. Esto es diferente a C/C++, donde decidir si usar stack o heap es responsabilidad del programador: en C, un struct se puede declarar en la pila, o asignar dinámicamente con malloc en el heap. 
 
 A modo de explicación breve y condensada, mientras que el heap es un espacio de memoria más grande donde el acceso es más lento porque hay que localizar y poner las cosas en su sitio según lo que ya está, en el stack predefinimos las direcciones de memoria de cosas como variables locales. Esto es un problema para lenguajes interpretados como Python que van sobre la marcha.
 
@@ -115,6 +137,7 @@ La **sobrecarga de métodos (method overloading)** permite definir múltiples m�
 
 class Calculadora {
     //sin estado
+}
 
     int sumar (int a, int b) { //suma1
         return a+b;
