@@ -213,13 +213,32 @@ java Main
 
 El punto de entrada de un programa Java es el método `main` con firma: `public static void main(String[] args)`. Es el primer método que la JVM (máquina virtual) busca y ejecuta cuando se lanza el programa.
 
-**`static`** indica que el método o atributo pertenece a la **clase**, no a instancias particulares. Un método estático puede ejecutarse sin crear un objeto de su clase; se invoca usando el nombre de la clase (ej: `Main.main()`). En C, es similar a variables y funciones de ámbito global dentro de un archivo. `main` es estático porque la JVM no tiene objetos creados aún cuando lanza el programa; solo tiene acceso a la clase.
+**`static`** indica que el método o atributo pertenece a la **clase**, no a instancias particulares (el nombre viene de ser estático, en el tiempo de compilación). Un método estático puede ejecutarse sin crear un objeto de su clase; se invoca usando el nombre de la clase (ej: `Main.main()`). En C, es similar a variables y funciones de ámbito global dentro de un archivo. `main` es **siempre** estático porque la JVM no tiene objetos creados aún cuando lanza el programa; solo tiene acceso a la clase. Se recomienda no abusar del uso de `static`.
+
+`static` --> permite usar un método o atributo sin necesidad de tener una instancia de la clase. A parte del `main`; por ejemplo, para ejecutar `Integer.parseInt(...)`, `Math.sqrt(...)` no necesitan crear un Integer nuevo o un Math nuevo, se antepone el nombre de la clase (no de la instancia) para señalarlo y funciona como una "función procedural" de las antiguas, como en C++.
+
+**Evidentemente en `static`, al no existir la instancia, no existe el `this`.**
+
+En atributos, si yo tengo un atributo `static`, solo se guardan en un único lugar de memoria (con `static`, los atributos no se reservan una vez por instancia si no de manera global).
+
 
 `static` no se usa solo en `main`. Puedes tener atributos estáticos (compartidos por todas las instancias) y métodos estáticos. Cuando se combina con **`final`**, se crea una **constante de clase**: una variable que es estática (existe una única copia) e inmutable (no puede cambiar). Ejemplo:
 
 ```java
-public static final double PI = 3.14159;
+    class Ejercicio1 {
+        public static void main (String[] args) { //este es siempre el punto de entrada, método main dentro de una clase. Para acceder al main, no necesito crear un new Ejercicio1.
+
+        }
+    }
 ```
+
+```java
+    class Punto {
+        double static final PI = 3.1415...; //PI nunca cambia, cada objeto no crea su propio PI, usan el mismo; final significa que no se puede asignar en el futuro (queda con el valor inicializado).
+
+    }
+```
+
 
 ***
 
