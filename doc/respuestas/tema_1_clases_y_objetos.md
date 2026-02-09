@@ -487,7 +487,13 @@ Sería problemático hacer `x-x` , al pasar el segundo `x` sin su objeto `otro` 
 
 ## 14. El paso del `Punto` como parámetro a un método, es **por copia** o **por referencia**, es decir, si se cambia el valor de algún atributo del punto pasado como parámetro, dichos cambios afectan al objeto fuera del método? ¿Qué ocurre si en vez de un `Punto`, se recibiese un entero (`int`) y dicho entero se modificase dentro de la función?
 
-En Java, **se pasan referencias por valor**. Esto significa que se copia la referencia (la dirección de memoria del objeto), no el objeto en sí. Si modificas los atributos del objeto dentro del método, esos cambios persisten fuera del método porque ambas referencias apuntan al mismo objeto en el heap.
+En Java, **se pasan referencias por valor**. Esto significa que se pasa una copia de la referencia (la dirección de memoria del objeto), no el objeto en sí. Si modificas los atributos del objeto dentro del método, esos cambios persisten fuera del método porque ambas referencias apuntan al mismo objeto en el heap.
+
+--> En Java se pasa una **copia del valor de la referencia al objeto**, lo cual **no es exactamente lo mismo que un paso por referencia en sentido estricto**. Si se tratara de un paso por referencia como tal, cualquier modificación del parámetro —incluida su reasignación dentro del método— afectaría al valor real; sin embargo, al trabajar con una copia del valor de la referencia, si se reasigna el parámetro dentro del método, el objeto externo no se ve afectado porque el parámetro deja de apuntar al mismo objeto.
+
+**Por regla general-->** Los tipos primitivos se pasan por copia (`int`, `long`, `double`, `char`, `boolean`...) y los **objetos** se pasan por copia de una referencia.
+
+*"Idea de implementación"* --> Internamente, Es como si hubiera un tipo primitivo invisiblw más, `ref` (al crear un Punto y luego pasarlo, en realidad estoy pasando una referencia; es decir, un `ref punto`).
 
 ```java
 void modificaPunto(Punto p) {
@@ -525,6 +531,96 @@ System.out.println(x);  // Imprime 5, no 6
 
 ***
 
+```java
+class Punto {
+    int x;
+    int y;
+    
+    Punto(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+    
+    
+    double distanciaA(Punto otro) { 
+        int dx = this.x - otro.x;
+        int dy = this.y - otro.y;
+        double distancia Math.sqrt(dx * dx + dy * dy);
+        return distancia;
+    }
+}
+
+```
+
+```java
+//Main.java
+public class Main {
+    public static void = main(String[] args) {
+        Punto p1 = new Punto(5,5);
+        Punto p2 = new Punto(6,5);
+
+        double distanciaEntrePuntos = p1.distanciaA(p2);
+        
+
+    }
+}
+```
+
+```md
+
+## Mapa de memoria de datos:
+
+    --> STACK INICIALMENTE:** 
+    //inicialmente distanciaEntrePuntos, p2 y p1 no tienen dirección de memoria preestablecida
+
+        dist*|double|              //distancia entre puntos
+        p2   |ref   | 
+        p1   |ref   |
+        args |ref   |0x777
+         Main::main
+
+    **--> HEAP:**
+
+    -> Punto (a medida que vamos llamando se sobreescribe): 
+
+    Punto (1ª vez): x|int|3  (Direcc1: 0xAB)   Punto (2ª vez): x|ref|6 (Direcc2: 0x4B)
+                    y|int|4                                    y|ref|8
+
+    **--> STACK DESPUÉS 1:**
+
+       dis2*|double|5.0            //distancia retornada por punto
+       dy   |double|-4
+       dx   |double|-3
+       otro |ref   |0x4B
+       this |ref   |0xAB
+        Punto::distanciaA
+       _________________
+       dist*|double|              //distancia entre puntos
+       p2   |ref   |0x4B
+       p1   |ref   |0xAB
+       args |ref   |0x777
+        Main::main
+
+            **--> STACK DESPUÉS 2: (Pasamos la solución al salir de distanciaA a la función)**
+
+       dis2*|double|5.0            //distancia retornada por punto
+       dy   |double|-4
+       dx   |double|-3
+       otro |ref   |0x4B
+       this |ref   |0xAB
+        Punto::distanciaA
+       _________________
+       dist*|double|5.0             //distancia entre puntos
+       p2   |ref   |0x4B
+       p1   |ref   |0xAB
+       args |ref   |0x777
+        Main::main
+
+        !!!Como aún usamos 5.0, no se considera basura la instancia de distanciaA!!!
+
+```
+
+***
 ## 15. ¿Qué es el método `toString()` en Java? ¿Existe en otros lenguajes? Pon un ejemplo de `toString()` en la clase `Punto` en Java
 
 **`toString()`** es un método especial definido en la clase base `Object` que devuelve una representación en texto del objeto. Cuando usas un objeto en un contexto donde se espera un String (como `System.out.println()`), se invoca automáticamente `toString()`. Por defecto, devuelve algo como "Punto@1a2b3c4d" (nombre de clase + código hash), poco útil.
