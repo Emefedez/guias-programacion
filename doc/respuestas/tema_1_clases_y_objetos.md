@@ -242,7 +242,7 @@ En atributos, si yo tengo un atributo `static`, solo se guardan en un único lug
 
 ***
 
-## 10. Intenta ejecutar un poco de Java de forma básica, con los comandos `javac` y `java`. ¿Cómo podemos compilar el programa y ejecutar desde linea de comandos? ¿Java es compilado? ¿Qué es la **máquina virtual**? ¿Qué es el *byte-code* y los ficheros `.class`?
+## 10. Intenta ejecutar un poco de Java de forma básica, con los comandos `javac` y `java`. ¿Cómo podemos compilar el programa y ejecutar desde linea de comandos? ¿Java es compilado? ¿Qué es la **máquina virtual**? ¿Qué es el *byte-code* y los ficheros `.class`? (+ hacer constructor)
 
 Para compilar y ejecutar:
 
@@ -257,11 +257,78 @@ La **máquina virtual de Java (JVM)** es un programa que actúa como intérprete
 
 Esto significa que Java nunca será tan rápido como lenguajes compilados directamente a lenguaje máquina como C++, pero también suele ser mucho más veloz que Python. El lenguaje es tan valioso justamente por, entre otras cosas, encontrarse en un punto medio de rendimiento y compatibilidad.
 
+### Esquema de arquitectura Java:
+```md
+  _________                 _____________
+ |         |    `javac`    |**byte-code**|   `java`
+ |  .java  | ------------> |  `.class`   | ------------> **JVM** (intérprete de byte-code en tiempo real)
+ | (texto) | (compilador)  |  (binario)  | (intérprete)
+
+```
+ ### --> La ventaja del compilador es que encontramos los errores antes del tiempo de compilación.
+
+```
+Project (before compiling)/
+├── Main.java
+└── Punto.java
+```
+```
+Project (after compiling)/
+├── Main.java
+├── Punto.java
+├── Main.class
+└── Punto.class
+```
+**--> veamos código ahora:**
+
+```java
+//Main.java
+public class Main {
+    public static void = main(String[] args) {
+        Punto miPunto = new Punto(5,5);
+        
+        /* Otra forma: 
+        Punto miPunto = new Punto(); //genera un punto y luego escribe datos
+        miPunto.x = 10;
+        miPunto.y = 20;
+        */
+        System.out.println("miPunto:" + miPunto.x + "\n" + miPunto.y);
+        //Salida:
+        //miPunto: 5
+        //5
+    }
+}
+```
+```java
+//Punto.java
+class Punto {
+    int x;
+    int y;
+
+    Punto(int x, int y) { //el x que ya estaba en el punto se verá sustituído por el valor de entrada (lo mismo para la y)
+        this.x = x; 
+        this.y = y;
+    }
+
+    Punto() { //si no pasamos ninguna coordenada, Punto.x y Punto.y serán 0 
+        this.x = 0;
+        this.y = 0;
+    }
+
+    Punto (int generic) { //de pasar un solo argumento, entonces aplicamos ese valor a x e y.
+        this.x = generic;
+        this.y = generic;
+    }
+}
+```
+
 ***
 
 ## 11. En el código anterior de la clase `Punto` ¿Qué es `new`? ¿Qué es un **constructor**? Pon un ejemplo de constructor en una clase `Empleado` que tenga DNI, nombre y apellidos
 
-**`new`** es el operador que crea una nueva instancia (objeto) en el heap. Alloca memoria, inicializa los atributos con valores por defecto (0 para números, null para referencias), y llama al constructor.
+**`new`** es el operador que crea una nueva instancia (objeto) en el heap. Alloca memoria, inicializa los atributos con valores por defecto (0 para números, null para referencias), y ejecuta el constructor con ese nuevo objeto (es decir, usa `this.` pues accionamos sobre el objeto actal).
+
+--> `new` devuelve el objeto (es una expresión), concretamente retorna la dirección de un objeto generado con lo pedido.
 
 Un **constructor** es un método especial con el mismo nombre que la clase, sin tipo de retorno explícito. Se ejecuta automáticamente cuando se crea una instancia (con `new`). Permite inicializar el objeto con valores específicos y así hacerlos accesibles desde otro punto más allá de su propia clase (caso donde solo necesitaríamos que fuera `public`). Ejemplo:
 
