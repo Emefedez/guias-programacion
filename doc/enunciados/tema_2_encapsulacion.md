@@ -51,18 +51,72 @@ Si especificamos más respecto a la relación que hay entre el término interfaz
 
 - **Estabilidad del contrato-->** Al ocultar la implementación interna, puedes cambiar el código de tus métodos privados o la estructura de tus datos sin cambiar la interfaz pública. Esto significa que los otros programadores que usan tu clase no tendrán que cambiar su código aunque tú modifiques el tuyo por completo.
 
-### Respuesta
-
 
 ## 3. Brevemente: ¿Por qué hay que ser conscientes y diseñar con cuidado la **interfaz pública** de una clase? ¿Es fácil cambiarla?
 
-### Respuesta
+Diseñar la interfaz pública de una clase es casi como redactar un contrato legal: una vez que ambas partes lo firman y empiezan a trabajar, cualquier modificación posterior puede ser costosa, frustrante y generar conflictos.
+
+ ### ¿Por qué diseñarla con cuidado?
+
+  - **Es el "Contrato" de tu clase:** La interfaz pública es la promesa de lo que tu objeto puede hacer. Si expones demasiados métodos o los diseñas de forma confusa, obligas a los demás programadores (o a ti mismo en el futuro) a depender de detalles que quizás no deberían conocer.
+
+  - **Mantiene el Control:** Una interfaz pequeña y bien definida te da libertad. Cuantos menos métodos públicos tengas, más libertad tendrás para cambiar el funcionamiento interno sin que nadie se dé cuenta.
+
+  - **Previene el uso incorrecto:** Una interfaz clara guía al usuario de la clase. Si solo expones lo necesario, reduces las posibilidades de que alguien llame a un método en un orden incorrecto o con datos que corrompan el estado del objeto.
+
+### ¿Es fácil cambiarla?
+
+La respuesta corta es no. De hecho, es una de las tareas más difíciles en el mantenimiento de software por las siguientes razones:
+
+ - **El Efecto Dominó (Breaking Changes):** Si cambias el nombre de un método público, eliminas un parámetro o cambias el tipo de dato que devuelve, romperás todo el código que use esa clase. Esto obliga a revisar y actualizar cada punto del programa donde se instanció ese objeto.
+
+  - **Dependencias externas:** Si tu clase forma parte de una librería o API que utilizan otros equipos o empresas, cambiar la interfaz pública es un desastre. Podrías inutilizar miles de líneas de código ajeno.
+
+  - **Coste de refactorización:** Mientras que cambiar algo privado es instantáneo y seguro, cambiar algo público requiere pruebas de regresión masivas para asegurar que no se ha roto la comunicación entre módulos.
+
+  - **Regla de oro:** En POO, intenta que tu interfaz pública sea lo más pequeña posible. Es mucho más fácil hacer público un método privado más tarde que intentar convertir un método público en privado cuando ya se está usando en todo el proyecto.
 
 
 ## 4. ¿Qué son las **invariantes de clase** y por qué la ocultación de información nos ayuda?
 
-### Respuesta
+Las **invariantes de clase** son las reglas fundamentales que definen qué es un "estado válido" para un objeto. Son condiciones que deben cumplirse siempre, desde que el objeto termina de construirse hasta que se destruye.
 
+Aquí tienes el desglose de este concepto crucial para la robustez del código:
+
+---
+
+### 1. ¿Qué son exactamente?
+
+Una invariante es una afirmación lógica sobre los atributos de una clase que **siempre es verdadera**. Si en algún momento la invariante se rompe, el objeto entra en un estado corrupto o inconsistente, lo que suele provocar errores graves en la aplicación.
+
+**Ejemplos clásicos:**
+
+* **En una clase `CuentaBancaria`:** "El saldo nunca puede ser inferior al límite de crédito permitido".
+* **En una clase `Fecha`:** "El día siempre debe estar entre 1 y el máximo de días del mes actual (ej. 1-31)".
+* **En una clase `Triángulo`:** "La suma de sus ángulos internos siempre debe ser 180°".
+
+---
+
+### 2. ¿Cómo ayuda la ocultación de información?
+
+La ocultación de información (usar atributos `private`) es el mecanismo de defensa que permite que las invariantes existan. Sin ella, las invariantes serían simples "sugerencias" que cualquiera podría romper.
+
+* **Control de acceso (El "Portero"):** Si los atributos son públicos, cualquier parte del programa puede modificarlos y romper la regla. Al hacerlos privados, obligas a que todo cambio pase por métodos públicos (como un `setFecha` o `retirarDinero`).
+* **Validación centralizada:** Dentro de esos métodos, puedes escribir código de validación. Si alguien intenta poner un valor que rompería la invariante, el método lo rechaza (lanza una excepción o ignora el cambio).
+* **Garantía de consistencia:** El objeto se vuelve responsable de su propio estado. No tiene que "confiar" en que los demás programadores usen bien sus datos; él mismo se asegura de que sus reglas se cumplan.
+
+> **En resumen:** La **invariante** es la regla y la **ocultación** es el muro que impide que alguien se salte esa regla desde fuera.
+
+---
+
+### Ejemplo práctico
+
+Imagina una clase `Fraccion`. Su **invariante** es que el denominador nunca puede ser cero ().
+
+1. **Sin ocultación:** Alguien hace `miFraccion.denominador = 0;`. El objeto se rompe y la siguiente operación matemática colapsará el programa.
+2. **Con ocultación:** El atributo es `private`. Si alguien intenta llamar a `miFraccion.setDenominador(0);`, el método interno detecta el error, lo bloquea y la invariante se mantiene a salvo.
+
+¿Te gustaría que pasemos a ver el concepto de **Herencia** o prefieres profundizar en los **Constructores** y cómo inicializan estas invariantes?
 
 ## 5. Pon un ejemplo de una clase `Punto` en `Java`, con dos coordenadas, `x` e `y`, de tipo `double`, con un método `calcularDistanciaAOrigen`, y que haga uso de la ocultación de información. ¿Cuál es la interfaz pública de la clase `Punto`? ¿Qué significa `public` y `private`?
 
