@@ -81,7 +81,7 @@ La respuesta corta es no. De hecho, es una de las tareas más difíciles en el m
 
 Las **invariantes de clase** son las reglas fundamentales que definen qué es un "estado válido" para un objeto. Son condiciones que deben cumplirse siempre, desde que el objeto termina de construirse hasta que se destruye.
 
-Aquí tienes el desglose de este concepto crucial para la robustez del código:
+Veamos un desglose de este concepto crucial para la robustez del código:
 
 ---
 
@@ -111,7 +111,7 @@ La ocultación de información (usar atributos `private`) es el mecanismo de def
 
 ### Ejemplo práctico
 
-Imagina una clase `Fraccion`. Su **invariante** es que el denominador nunca puede ser cero ().
+Véase una clase `Fraccion`. Su **invariante** es que el denominador nunca puede ser cero ().
 
 1. **Sin ocultación:** Alguien hace `miFraccion.denominador = 0;`. El objeto se rompe y la siguiente operación matemática colapsará el programa.
 2. **Con ocultación:** El atributo es `private`. Si alguien intenta llamar a `miFraccion.setDenominador(0);`, el método interno detecta el error, lo bloquea y la invariante se mantiene a salvo.
