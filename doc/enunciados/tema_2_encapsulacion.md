@@ -16,10 +16,40 @@ Por favor, escribe en impersonal las respuestas.
 
 ## 1. En Programación Orientada a Objetos (POO), ¿Qué buscan la **encapsulación** y **la ocultación** de información? Enumera brevemente algunas ventajas de la ocultación de información.
 
-### Respuesta
+**Aunque a menudo se usen como sinónimos, hay matices que diferencian ambos términos:**
+
+- **Encapsulación -->** Es el proceso de agrupar datos (atributos) y los métodos que operan sobre esos datos en una sola unidad o "caja" (la clase). Su objetivo es mantener todo lo relacionado con un objeto en un mismo lugar.
+
+- **La Ocultación de información -->** Es la capacidad de restringir el acceso directo a los detalles internos de esa "caja". Busca separar la interfaz (lo que el objeto hace) de la implementación (cómo lo hace internamente).
+
+- **En resumen-->** buscan que el mundo exterior solo interactúe con el objeto a través de una interfaz controlada (métodos públicos), impidiendo que se modifique el estado interno de forma arbitraria o errónea.
+
+
+### En definitiva, estas son las principales ventajas:
+
+**Protección de la integridad:** Evita que el código externo asigne valores inválidos a los atributos (por ejemplo, una "edad" negativa), ya que el acceso se filtra mediante métodos (getters/setters) que validan los datos.
+
+**Facilidad de mantenimiento:** Puedes cambiar la lógica interna de un método o el tipo de una variable privada sin que el resto del programa se entere ni deje de funcionar.
+
+**Reducción del acoplamiento:** Al depender solo de la interfaz pública, los diferentes módulos de un programa están menos "atados" entre sí, lo que facilita hacer cambios en uno sin romper los demás.
+
+**Abstracción y simplicidad:** Como bien mencionaste, el usuario de la clase solo ve lo que necesita para trabajar, eliminando el ruido visual de la complejidad interna. 
+
 
 
 ## 2. ¿Qué se entiende por la **interfaz pública** de un objeto o clase en POO? Describe brevemente cómo se relaciona con la ocultación de información.
+
+El término interfaz pública hace referencia a todos los métodos de un objeto/clase a los que se puede acceder desde fuera. Requiere que sean clases públicas, si no sólo puedes acceder desde el mismo `.java`. Los métodos y atributos ocultos son aquellos que no salen en la interfaz pública.
+
+Se podría decir entonces, que la interfaz pública es, fundamentalmente, la respuesta a la pregunta: "¿Qué puede hacer este objeto por mí?", sin importar cómo lo haga por dentro.
+
+Si especificamos más respecto a la relación que hay entre el término interfaz pública y la ocultación de objetos, diríamos que esta se basa en la **separación de preocupaciones:**
+
+- **Punto de contacto-->** La interfaz pública es la única vía permitida para interactuar con el objeto. Todo lo que no está en la interfaz pública (atributos privados, métodos auxiliares de cálculo, etc.) está "oculto".
+
+- **Abstracción-->** La ocultación permite que la interfaz sea minimalista. Al esconder los detalles complejos, la interfaz pública se mantiene simple y fácil de usar.
+
+- **Estabilidad del contrato-->** Al ocultar la implementación interna, puedes cambiar el código de tus métodos privados o la estructura de tus datos sin cambiar la interfaz pública. Esto significa que los otros programadores que usan tu clase no tendrán que cambiar su código aunque tú modifiques el tuyo por completo.
 
 ### Respuesta
 
