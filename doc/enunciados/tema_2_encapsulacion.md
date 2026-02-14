@@ -120,13 +120,112 @@ Véase una clase `Fraccion`. Su **invariante** es que el denominador nunca puede
 
 ## 5. Pon un ejemplo de una clase `Punto` en `Java`, con dos coordenadas, `x` e `y`, de tipo `double`, con un método `calcularDistanciaAOrigen`, y que haga uso de la ocultación de información. ¿Cuál es la interfaz pública de la clase `Punto`? ¿Qué significa `public` y `private`?
 
-### Respuesta
+Es necesario añadir un constructor, un método público alcanzable y getters que no acceden al atributo si los quiero a parte puesto que este se mantiene privado para imposibilitar su modificación no deseada.
+
+## Ejemplo Completo de la Clase `Punto`
+
+```java
+public class Punto {
+    // Atributos privados: Ocultación de información
+    private double x;
+    private double y;
+
+    // Constructor: Permite inicializar el objeto
+    public Punto(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    // Método público: Parte de la interfaz
+    public double calcularDistanciaAOrigen() {
+        return Math.sqrt(this.x*this.x + this.y*this.y);
+    }
+
+    // Métodos Getter: Permiten leer los datos sin acceder directamente al atributo
+    public double getX() { return x; }
+    public double getY() { return y; }
+}
+
+```
+
+
+**--> ¿Cuál es la interfaz pública de la clase `Punto`?**
+
+La **interfaz pública** es el conjunto de métodos y miembros que son accesibles desde fuera de la clase. Es el "contrato" que la clase ofrece al resto del programa para interactuar con ella.
+
+En el ejemplo anterior, la interfaz pública consiste en:
+
+* El **constructor**: `Punto(double x, double y)`.
+* El **método**: `calcularDistanciaAOrigen()`.
+* Los **métodos de acceso** (si se incluyen): `getX()` y `getY()`.
+
+Los atributos `x` e `y` **no** forman parte de la interfaz pública porque están ocultos tras el modificador `private`.
+
+---
+
+**--> ¿Qué significa `public` y `private`?**
+
+Estos términos se conocen como **modificadores de acceso** y definen el nivel de visibilidad de los componentes de una clase:
+
+* **`public`**: Indica que el miembro (atributo o método) es accesible desde **cualquier otra clase** en cualquier paquete. Se usa para definir qué servicios ofrece el objeto al mundo exterior.
+* **`private`**: Indica que el miembro solo es accesible **dentro de la propia clase**. Nadie fuera de las llaves `{ ... }` de la clase `Punto` puede ver o modificar `x` o `y` directamente.
+
+> **Nota sobre la ocultación de información:** No privatizamos los atributos solo porque una función interna los use. Lo hacemos para proteger la **integridad de los datos**. Si `x` fuera `public`, cualquier otra parte del código podría cambiar su valor sin que la clase `Punto` se entere, lo que podría romper la lógica del objeto. Al ser `private`, la clase tiene el control total.
+
 
 
 ## 6. En Java, ¿A quiénes se pueden aplicar los modificadores `public` o `private`?
 
-### Respuesta
+En Java, los modificadores de acceso **`public`** y **`private`** se pueden aplicar a diferentes elementos del código para controlar su visibilidad. Sin embargo, las reglas cambian dependiendo de si hablamos de una clase en sí misma o de lo que hay dentro de ella.
 
+Aquí tienes el desglose detallado:
+
+### 1. A nivel de Miembros de Clase
+
+Es el uso más común. Se aplican a todo lo que define el comportamiento y estado de un objeto:
+
+* **Atributos (Variables de instancia o de clase):** Para proteger los datos (encapsulamiento).
+* **Métodos:** Para definir qué acciones puede realizar el objeto desde fuera (`public`) o qué procesos internos necesita (`private`).
+* **Constructores:** Determinan quién puede crear instancias de la clase. Un constructor `private` impide que se creen objetos fuera de la clase (común en el patrón *Singleton*).
+* **Clases e Interfaces Anidadas:** Las clases que se definen dentro de otra clase sí pueden ser marcadas como `private`.
+
+---
+
+### 2. A nivel de Clase (Nivel Superior)
+
+Para las clases e interfaces que definimos directamente en un archivo `.java`, las reglas son más estrictas:
+
+* **`public`**: La clase es accesible desde cualquier otra clase de cualquier paquete.
+* **`private`**: **No está permitido** para clases de nivel superior. Una clase de nivel superior solo puede ser `public` o tener acceso por defecto (*package-private*).
+
+---
+
+### Tabla Comparativa de Visibilidad
+```md
+
+| Modificador   |     Clase de nivel superior     | Miembros (Atributos, Métodos, etc.)                       |
+|_______________|_________________________________|___________________________________________________________|
+| **`public`**  |  Visible desde cualquier lugar. | Visible desde cualquier lugar donde la clase sea visible. |
+| **`private`** |.       **No permitido**.        | Visible **solo** dentro de la clase donde se declaró.     |
+```
+---
+
+### Resumen de Aplicación
+```md
+
+| Elemento                | ¿Puede ser `public`? | ¿Puede ser `private`? |
+|_________________________|______________________|_______________________|
+| Clases (Nivel superior) |           Sí         |           No          |
+| Clases Anidadas         |           Sí         |           Sí          |
+| Interfaces (Niv. sup.)  |           Sí         |           No          |
+| Atributos / Campos      |           Sí         |           Sí          |
+| Métodos                 |           Sí         |           Sí          |
+| Constructores           |           Sí         |           Sí          |
+```
+
+> **Dato clave:** Si no pones ni `public` ni `private`, Java aplica el nivel de acceso por defecto (*default* o *package-private*), lo que significa que el elemento solo es visible para las clases que están en el mismo paquete.
+
+¿Te gustaría ver un ejemplo de cómo un **constructor privado** puede ser útil en un programa real?
 
 ## 7. En POO, la visibilidad puede ser pública o privada, pero ¿existen más tipos de visibilidad? ¿Qué ocurre en Java? ¿Y en otros lenguajes?
 
