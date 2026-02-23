@@ -423,8 +423,27 @@ static Punto nuevoPuntoConRedondeo(double x, double y) {
 
 ## 16. Si un atributo va a tener un método "getter" y "setter" públicos, ¿no es mejor declararlo público? ¿Cuál es la convención más habitual sobre los atributos, que sean públicos o privados? ¿Tiene esto algo que ver con las "invariantes de clase"?
 
-### Respuesta
+No, porque perdemos la posibilidad de cambiarlo y garantizar invariantes de clase, es decir, los getters y setters permiten verificarlas antes de retornar o modificar un miembro.
 
+```java
+Punto(double x, double y) {
+  if (x>100) { //Imagina que no quiero valores de x mayores a 100
+    System.out.println("Value too big");
+    return
+  } else {
+    //....
+  }
+}
+```
+```java
+double getX() {
+  return this.x; //los double son primitivos, lo que devuelvo en este caso es, por extensión, una copia. Me despreocupo de este valor, que hagan lo que quieran, no cambiará la instancia de la clase.
+}
+```java
+double getNombre() {
+  return this.nombre; //los string no son primitivos (es de tipo objeto), lo que devuelvo en este caso es, por extensión, una copia de la referencia. El string no se ha duplicado, sólo se garantiza que desde fuera no se podría cambiar si el string es inmutable (¡¡por suerte lo es!!), con todos sus atributos internos siendo privados. De ser un miembro mutable, lo usual es generar una copia para devolverla.
+}
+```
 
 ## 17. ¿Qué significa que una clase sea **inmutable**? ¿qué es un método modificador? ¿Un método modificador es siempre un "setter"? ¿Tiene ventajas que una clase sea inmutable?
 
