@@ -444,7 +444,7 @@ double getNombre() {
   return this.nombre; //los string no son primitivos (es de tipo objeto), lo que devuelvo en este caso es, por extensión, una copia de la referencia. El string no se ha duplicado, sólo se garantiza que desde fuera no se podría cambiar si el string es inmutable (¡¡por suerte lo es!!), con todos sus atributos internos siendo privados. De ser un miembro mutable, lo usual es generar una copia para devolverla.
 }
 ```
-
+```
 ## 17. ¿Qué significa que una clase sea **inmutable**? ¿qué es un método modificador? ¿Un método modificador es siempre un "setter"? ¿Tiene ventajas que una clase sea inmutable?
 
 ### Respuesta
