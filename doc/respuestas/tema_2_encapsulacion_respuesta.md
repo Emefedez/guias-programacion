@@ -443,38 +443,136 @@ double getX() {
 double getNombre() {
   return this.nombre; //los string no son primitivos (es de tipo objeto), lo que devuelvo en este caso es, por extensión, una copia de la referencia. El string no se ha duplicado, sólo se garantiza que desde fuera no se podría cambiar si el string es inmutable (¡¡por suerte lo es!!), con todos sus atributos internos siendo privados. De ser un miembro mutable, lo usual es generar una copia para devolverla.
 }
-
 ```
+```
+
 ## 17. ¿Qué significa que una clase sea **inmutable**? ¿qué es un método modificador? ¿Un método modificador es siempre un "setter"? ¿Tiene ventajas que una clase sea inmutable?
 
-### Respuesta
+Un objeto inmutable es aquel cuyo estado no cambia desde que se crea el objeto (por ejemplo, un Libro con ciertos datos no va a ser modificable, habría que generar un nuevo libro. Se habla de clases inmutables pero lo que es verdaderamente inmutable es cada instancia individual [¡en el stack!]). 
 
+Un método modificador es aquel que cambia el estado interno del objeto, por ejemplo, los `setter` (`setTitulo()`). Esto es evidentemente incompatible con la inmutabilidad. Otros métodos modificadores podrían ser `ingresar()`, `retirarSaldo()`.
+
+Es ideal empezar con clases inmutables y sólo hacerlas mutables si verdaderamente se vuelve necesario con el tiempo. De entrada cuanto más conservador con lo abierto que es un método mejor, significa código más limpio, y, por extensión, seguro.
+
+No se deben crear getters y setters sin pensar, hacer una clase mutable sin necesidad puede hacer todo más difícil de entender y facilitar las problemáticas race conditions (es decir, los métodos privados son mejores para la concurrencia; un método mutable luego requiere sincronizadores y protecciones adicionales para evitar modificación simultánea de datos).
 
 ## 18. ¿Es recomendable incluir métodos "setter" siempre y como convención?
 
-### Respuesta
-
+No, hace la clase mutable sin necesidad. Primero hay que plantearse si es necesario y poner en una balanza los beneficios.
 
 ## 19. ¿La clase `String` en Java es mutable o inmutable? ¿Qué ocurre al concatenar dos cadenas? ¿Qué debemos hacer si vamos a hacer una operación que implique concatenar muchas veces para construir paso a paso una cadena muy larga?
 
-### Respuesta
+`String` es **inmutable**, las cadenas de texto almacenadas en un objeto String no se pueden modificar; tiene muchas implicaciones.
 
+por ejemplo:
+
+```java
+class Libro {
+  private final String titulo; //podemos agregar `final` opcionalmente para impedir que se modifique desde dentro incluso sin querer y mostrar que es a posta el que no sea modificable
+
+  public Libro (String titulo); {
+    this.titulo = titulo;
+  }
+  ///.... código
+  
+  public String getTitulo() {
+    return this.titulo;
+  }
+}
+```
+```java
+public void main(String[] args) {
+  Libro libro = new Libro("Quijote");
+  String.titulo = libro.getTitulo(); //<-- Accedo a una copia de la dirección del título
+  /*A.*/ titulo = "La regenta"; //no cambia, es inmutable
+  /*B.*///libro.setCharAt(0, 'R'); //ESTO NO SE PUEDE HACER, PODRÍA DEVOLVER UN NUEVO STRING PERO ESTE MÉTODO NO EXISTE
+}
+```
+
+Ojo, no se puede crear una clase inmutable desde una clase mutable al menos que esté **muy bien** blindada.
+
+Una situación en la que nos vendría bien que String fuera mutable sería al leer un archivo muy largo; no se puede modificar el String en partes (por ejemplo, ir concatenando cadenas línea a línea en uno); habría que cargar el archivo **completo** en memoria o ir generando pequeños String y descartándolas.
+
+```java
+String s = "hola" + "adios";
+       s = "s"+"fin"; //habría que crear un nuevo String sumando la actual a lo nuevo pues no se puede agregar directamente al existente. En su lugar, genera un nuevo String y manda la anterior a la basura.
+```
+Para eso existe el StringBuilder, una especie de versión mutable de String (sin serlo exactamente), su trabajo es recibir es concatenar contenido sin regenerarse entera; empleando `.append()`. Finalmente se emplea el `.toString()` de `StringBuilder`, que devuelve lo acumulado en una cadena.
 
 ## 20. En POO ¿Cómo se comparan objetos de una misma clase? ¿Por su contenido o por su identidad? ¿Qué es el método equals en Java? ¿Qué hace por defecto? ¿Cómo se deben comparar dos cadenas en Java? 
 
-### Respuesta
+Como tenemos objetos, existen valores de tipo primitivo y de tipo Objeto.
 
+**Igualdad a nivel de Objetos:** *"¿Es el libro L1 igual al libro L2?"*
+   
+  * **==> Por identidad:** misma dirección de memoria (es decir, dos objetos son iguales si ambos están en la misma dirección de memoria; sería **comparar por identidad**). La variable local `titulo` del ejemplo de `Libro` apunta a la misma dirección y, por extensión, conocemos que son iguales.
+  
+       - En **java** `if (l1 == l2)` (la forma rápida de comrpobar) sea `Libro l1 = new Libro("Quijote")` y `Libro l2 = new Libro("Quijote")`. En este caso, aunque el String diga "Quijote" en ambos, como técnicamente son dos Strings diferentes, no comparten dirección de memoria y por extensión no son iguales (la comprobación retornaría `false`).
+  
+  * **==> Por contenido:** mismo estado (se verifica manualmente si tienen el mismo atributo, esto es útil porque podemos tener varias instancias de `Libro` diferentes, pero que compartan título).
+  
+       - En **java** se usaría `equals()` siempre y cuando esté implementado para comparar por contenido. `if (l1.equals(l2))` compara `l1` con `l2` y devuelve booleano, en este caso devolvería `true`. `equals` es donde se haría la comprobación por contenido, pero si no existe explícitamente en las clases creadas por nosotros (hay que crearlas), sigue haciendo la comparación por identidad. Es decir, funciona para `String`, pero como para `Libro` no cree un comprobador, por dentro hará `if (l1 == l2)`.
+  
+      - `equals` existe en todas las clases. 
+      - Normalmente, querrás compara los `String` con `equals()`.
 
 ## 21. ¿Qué son las clases "wrapper" en un lenguaje de programación orientado a objetos? ¿Cómo se hace? ¿Es un proceso automático? ¿Qué ventajas tienen? ¿Todos los lenguajes orientados a objetos tienen tipos primitivos y necesitan wrappers? 
 
-### Respuesta
+Los `wrapper` se suelen ver en lenguajes orientados a objetos que tienen tipos primitivos (*`python` no tiene primitivos, cada objeto **siempre** tiene su propia referencia*)
 
+Java tiene tipos primitivos y también clases para envolver valores primitivos y darles las ventajas de la orientación a objetos.
+* `int <==> Integer`, `float <==> Float`, `char <==> Character`, `bool <==> Boolean`. 
+
+La clase `Integer` tiene un atributo inmutable `int` dentro y contiene ciertos objetos que nos ayudan a trabajar con él. El mismo concepto se aplica para el resto de wrappers.
+
+--> Incluyen métodos útiles (Por ejemplo, Integer incluye ParseInt() (que es último para trabajar con punteros)) y de instanciamiento.
+--> Pueden ser usados en conceptos en los que se necesiten Objetos (Por ejemplo, no puedo tener una lista (`List`) de `int`s pero sí de diversos objetos `Integer`).
+
+--------------------------------------------
+
+Es un proceso muy rápido y "barato", pasar de uno a otro es muy sencillo y muchas veces automático (Java lo gestiona en tiempo de compilación). 
+
+`Integer i=7;` funciona, produce un *Autoboxing*, por dentro hace `Integer i = new Integer(7)`, ¡es lo mismo!
+`int j = i;` es un *Autounboxing*, saca automáticamente el 7 del integer; por dentro hace `int j = i.intValue()`.
 
 ## 22. ¿En POO qué es un **tipo de dato enumerado**? ¿En Java, un tipo de dato enumerado es una clase? ¿Qué ventajas tienen en términos de encapsulación los enumerados en Java?
 
-### Respuesta
+En general, un enumerado es un tipo cuyos valores son finitos y conocidos de antemano. El tipo `genero` de un Libro sería un enumerado limitado con ciertos géneros (Terror, Ciencia Ficción, Historia...).
 
+En **java** un enumerado es una clase,pero con ciertas restricciones:
+  - Las instancias que tiene son: finitas y conocidas de antemano.
+  - ...pero también es una clase... puedo, por ejemplo, crearle **métodos**, **atributos**, constructores **privados**.
+  
+```java
+public enum TipoIVA { //primero lo veo como un enumerado y luego como una clase
+  GENERAL(1.21),
+  REDUCIDO(1.10); //Podemos acceder a estas dos instancias pública y globales con TipoIVA.GENERAL o TipoIVA.reducido, obtendré una copia de la dirección de memoria.
 
+  /* Si no hubiera paréntesis en los enum podríamos hacer un switch así
+  public double aplica(double cant) { //tratamos el enum como clase
+    return switch(this) {
+      GENERAL -> return cant*1.21;
+      REDUCIDO -> return cant*1.1;
+    }
+  }*/
+
+  private double factor;
+
+  public double aplica(double cant) { //empleando factor nos queda esta lógica más sencilla, que no cambia la manera externa de interactuar con el enum
+    return this.factor * cant;
+  }
+
+  private TipoIVA(double factor) {
+    this.factor = factor;
+  }
+}
+```
+```java
+//así podría hacer código muy práctico y ordenado.
+Fatura f = //...;
+TipoIVA tipo = f.getTipoIVA(); //obtengo el tipo de iva de la factura
+double total = tipo.aplicar(f.getTotal());
+```
 ## 23. Crea un tipo enumerado en Java que se llame `Mes`, con doce posibles instancias y que además proporcione métodos para obtener cuántos días tiene ese mes, el ordinal de ese mes en el año (1-12), empleando atributos privados y constructores del tipo enumerado.
 
 ### Respuesta
