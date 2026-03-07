@@ -122,23 +122,164 @@ Relacionado con la encapsulación; 3 elementos tiene todo objeto Excepción:
 
 ## 8. En Java, sobre el bloque **"try-catch"**, ¿se pueden tener más de un bloque `catch`? ¿cuántos bloques `catch` se ejecutan?
 
-### Respuesta
+Sí, en Java se pueden tener múltiples bloques `catch` asociados a un solo bloque `try`. Solo se ejecuta **un** bloque `catch`: el primero que coincida con el tipo de excepción lanzada (siguiendo el orden de herencia de clases, de más específica a más general).
 
+## Sintaxis básica
+La estructura permite varios `catch` consecutivos:
+
+```
+try {
+    // Código riesgoso
+} catch (ExcepcionEspecifica1 e) {
+    // Manejo específico
+} catch (ExcepcionEspecifica2 e) {
+    // Otro manejo
+} catch (Exception e) {
+    // Genérico (último)
+}
+```
+
+Esto es útil cuando el `try` puede generar distintos tipos de errores. [datacamp](https://www.datacamp.com/es/doc/java/catch)
+
+## ¿Cuántos se ejecutan?
+- **Solo uno**: Java evalúa los `catch` secuencialmente hasta encontrar coincidencia.
+- Si no hay match, la excepción propaga al bloque padre (escalado vertical).
+- Nunca se ejecutan varios `catch` por `try`; el flujo salta al `catch` correcto y continúa. [codegym](https://codegym.cc/es/forum/1621)
+
+## Corrección de razonamiento original
+Tu idea de "tantos catch como try errados" es incorrecta: cada `try-catch` es independiente, y múltiples `catch` manejan **tipos** dentro del **mismo** `try`. El anidamiento (try dentro de try) es posible, pero cada nivel maneja su propia excepción.
 
 ## 9. Si las excepciones producen rupturas en el código llamador, ¿cómo podemos garantizar que se ejecuta siempre finalmente un código necesario para cierre de ficheros, liberacion de recursos, antes de que continúe propagándose la excepción? Pon un ejemplo en Java con `finally`, tanto con `catch` como sin él.
 
-### Respuesta
+El bloque `finally` garantiza la ejecución de código crítico (como cerrar ficheros o liberar recursos) independientemente de si ocurre una excepción, se captura o el método termina normalmente. Se ejecuta **siempre** tras el `try` (y `catch` si existe), incluso si la excepción se propaga al llamador.
+
+## Con `catch` (excepción capturada):
+```java
+public void ejemploConCatch() {
+    FileInputStream fis = null;
+    try {
+        fis = new FileInputStream("archivo.txt");
+        // Simular lectura que falla
+        int dato = fis.read(); // Puede lanzar IOException
+    } catch (IOException e) {
+        System.out.println("Error: " + e.getMessage());
+        throw e; // Propaga la excepción
+    } finally {
+        System.out.println("Cerrando fichero...");
+        if (fis != null) {
+            try { fis.close(); } catch (IOException ignored) {}
+        }
+    }
+}
+```
+El `finally` cierra el fichero **antes** de que la `IOException` suba al llamador.
+## Sin `catch` (excepción propaga directamente):
+```java
+public void ejemploSinCatch() {
+    FileInputStream fis = null;
+    try {
+        fis = new FileInputStream("archivo.txt");
+        int dato = fis.read(); // Lanza IOException
+    } finally {
+        System.out.println("Liberando recursos...");
+        if (fis != null) {
+            try { fis.close(); } catch (IOException ignored) {}
+        }
+    }
+    // La IOException propaga aquí, pero recursos ya cerrados
+}
+```
+`finally` se ejecuta antes de propagar la excepción, asegurando limpieza. 
+
+## Nota moderna: `try-with-resources`
+Para Java 7+, se recomienda usar esto (automático, prefiere sobre `finally` manual):
+```java
+try (FileInputStream fis = new FileInputStream("archivo.txt")) {
+    fis.read();
+} // Se cierra automáticamente, incluso con excepción
+```
+Más limpio y garantiza cierre vía `AutoCloseable`.
+
+En definitiva, el `finally` sirve para permitir una salida segura del programa aunque todo "se vaya al garete", no tieme por que solucionar los problemas que dan pie al error, si no que limpia el camino para una ejecución adecuada la próxima vez que se emplee el programa.
 
 
 ## 10. En Java, el bloque `finally` puede ir sin `catch`? ¿Se ejecuta siempre tanto si ocurre como si no ocurre una excepción? ¿Y si hay un `return` en medio del `try`?
 
-### Respuesta
-
+Sí, como se explicó en la respuesta anterior.
 
 ## 11. En Java, qué son las excepciones **"controladas"** y las **"no controladas"**? ¿Qué papel juega `RuntimeException`? Pon un ejemplo de excepciones típicas controladas y no controladas que incluso nosotros mismos podríamos usar. Haz dos listas con 3 o 4 ejemplos de situación donde se suele preferir una excepción controlada y donde se suele preferir una excepción no controlada.
 
-### Respuesta
+En Java, las **excepciones controladas (checked)** son clases derivadas de `Exception` (pero **no** de `RuntimeException`) y el compilador **obliga** a declararlas con `throws` o capturarlas con `try‑catch`. Las **excepciones no controladas (unchecked)** son subclases de `RuntimeException` (o de `Error`) y el compilador **no exige** que se manejen, aunque puedes capturarlas si quieres. 
 
+### Rol de `RuntimeException`
+
+`RuntimeException` es la clase base de las excepciones no controladas. Representa normalmente errores de **lógica de programa** (índices fuera de rango, referencias nulas, cast incorrecto…), no condiciones externas “recuperables”. Al heredar de `RuntimeException`, cualquier excepción que extienda esta clase se comporta como no controlada: no se exige manejo explícito en el bytecode ni en la firma del método.
+
+***
+
+### Ejemplos típicos de excepciones
+
+**Controladas (checked):**  
+- `IOException` → problemas de entrada/salida (ficheros, red).  
+- `SQLException` → errores al ejecutar una consulta SQL.  
+- `FileNotFoundException` → intentar abrir un fichero que no existe.  
+- `ClassNotFoundException` → intentar cargar una clase por nombre que no está en el classpath. 
+
+**No controladas (unchecked / `RuntimeException`):**  
+- `NullPointerException` → llamar método o atributo sobre un objeto `null`.  
+- `ArrayIndexOutOfBoundsException` → acceder fuera de los límites de un array.  
+- `IllegalArgumentException` → argumento inválido (por ejemplo, saldo negativo).  
+- `ClassCastException` → intentar castear un objeto a un tipo incompatible.
+
+Si tú mismo defines una excepción, puedes controlar si es controlada o no:
+
+```java
+// Controlada: NO extiende RuntimeException
+class MiExcepcionControlada extends Exception {
+    public MiExcepcionControlada(String msg) { super(msg); }
+}
+
+// No controlada: sí extiende RuntimeException
+class MiExcepcionNoControlada extends RuntimeException {
+    public MiExcepcionNoControlada(String msg) { super(msg); }
+}
+```
+
+***
+
+### Situaciones donde se prefiere una excepción controlada
+
+Se suele usar una **excepción controlada** cuando:
+
+- El problema es **externo** al programa y **recuperable** (por ejemplo, fallo de red, disco lleno, base de datos caída).  
+- Quieres **forzar** al cliente del código a pensar explícitamente qué hacer (reintentar, mostrar un mensaje, cambiar de servidor, etc.).  
+- El error es **esperable** y forma parte del contrato público de la API (por ejemplo, métodos de lectura de ficheros, conexión a BBDD, envío de emails).  
+
+Ejemplos de escenarios:
+
+- Lectura/escritura de ficheros: puede haber I/O, permisos, disco lleno → usar `IOException` o subclases de `Exception`.  
+- Consultas a base de datos: SQL puede fallar por sintaxis, tablas inaccesibles, etc. → `SQLException`.  
+- Operaciones de red que pueden fallar por timeout o caída de conexión → `IOException` o excepciones propias que extiendan `Exception`.  
+- Servicios que dependen de APIs externas: el cliente debe saber que puede fallar y decidir reintentar o fallback.  
+
+***
+
+### Situaciones donde se prefiere una excepción no controlada
+
+Se suele usar una **excepción no controlada** cuando:
+
+- El problema es un **error de programación** (argumento inválido, precondición violada, estado inconsistente).  
+- No veas sentido en que el cliente lo “reabra” porque el bug debería corregirse en el código, no paliarse.  
+- No quieres “obligar” a cada llamador a escribir `try‑catch` para errores meramente de uso incorrecto.  
+
+Ejemplos de escenarios:
+
+- Validación de parámetros: `null` donde no debe haberlo, número negativo donde debe ser positivo → `IllegalArgumentException`, `NullPointerException`.  
+- Índices fuera de rango en colecciones propias: `ArrayIndexOutOfBoundsException` o una `RuntimeException` propia.  
+- Invariantes de negocio: por ejemplo, restar saldo negativo, actualizar un objeto borrado, dividir por cero en lógica interna.  
+- Errores de uso de API: el desarrollador llama mal a tu método (por ejemplo, sin haber inicializado algo primero) → `IllegalStateException`.  
+
+En resumen, **controladas** = casos recuperables y esperados, **no controladas** = errores de lógica o de invocación que deberían corregirse en el código fuente.
 
 ## 12. ¿Qué es y para qué se usa `throws`? ¿Por qué es alternativa a capturar una excepción controlada?
 
