@@ -256,37 +256,87 @@ El rombo quiere decir que la clase contenedora es meramente un contenedor. Si la
 **-->** Como conclusión, es importante recordar y marcar que usar != componerse con.
 
 
+La diferencia principal entre composición fuerte y composición débil está en el grado de pertenencia entre objetos. En la composición fuerte, el objeto contenido "forma parte" del contenedor de manera esencial: no tiene sentido fuera de él en ese modelo. En la composición débil, en cambio, el contenedor solo mantiene una referencia a objetos que pueden existir por su cuenta y ser compartidos por otros contenedores.
+
+La consecuencia práctica más importante aparece en el ciclo de vida. En composición fuerte, cuando desaparece el contenedor, también dejan de tener sentido sus partes (su ciclo de vida queda ligado). En composición débil, los objetos relacionados pueden seguir existiendo aunque el contenedor se destruya o deje de referenciarlos.
+
+En terminología habitual de modelado UML, la composición fuerte es la que suele llamarse "composición" propiamente dicha. La composición débil suele llamarse "agregación" o, en lenguaje más general, una asociación de tipo "tiene-un/tiene-varios" sin dependencia fuerte de ciclo de vida.
+
+Por tanto, no toda relación "A tiene B" implica composición fuerte. Para decidir correctamente, conviene preguntar si B puede vivir sin A y si B puede pertenecer a varios A a la vez; si la respuesta es sí, lo normal es estar ante una agregación/asociación y no ante composición fuerte.
+
 
 ## 5. Cuando una clase usa a otra al recibirla o devolverla como parámetro en algún método, al hacer `new` dentro de un método, o al usarlas como variables locales, ¿hablamos de composición o de **"dependencia"**?
 
 ### Respuesta
 
+En esos casos se habla, en general, de dependencia y no de composición estructural. Una dependencia significa que una clase "necesita" otra para ejecutar alguna operación concreta, pero no implica necesariamente que esa otra clase pase a formar parte estable del estado interno del objeto.
+
+Si una clase recibe un objeto como parámetro, lo devuelve como resultado, lo usa como variable local, o crea un objeto temporal con `new` dentro de un método, puede existir acoplamiento de uso, pero no tiene por qué existir una relación "tiene-un" persistente. La composición se reconoce cuando la referencia se almacena como atributo del objeto y forma parte de su diseño estable.
+
+Por ejemplo, un método que recibe un `Scanner` para leer datos tiene dependencia de `Scanner`. En cambio, una clase `Departamento` que guarda profesores en un atributo interno mantiene una relación estructural con `Profesor`. Esta distinción es útil para no confundir uso puntual con relación de composición o agregación del modelo de dominio.
+
 
 ## 6. En el ejemplo anterior de línea y punto, programa la relación entre `Linea` y `Punto` de dos formas. Una **como composición fuerte**, donde el ciclo de vida de los puntos está ligado al de Linea y otra **como composición débil**, donde no.
 
-Con composición fuerte:
-La clase Punto se mantiene pero Linea cambia...
+Para modelar composición fuerte en Java, la idea es que `Linea` no reciba objetos `Punto` creados fuera, sino que construya internamente sus propios puntos a partir de coordenadas. Así se deja claro que esos puntos pertenecen a esa línea en ese modelo y que su ciclo de vida queda unido al de `Linea`.
+
+En composición débil (agregación), `Linea` recibe referencias a `Punto` ya existentes. Esos puntos pueden reutilizarse en otras líneas, seguir existiendo aunque una línea desaparezca y, por tanto, su ciclo de vida no queda ligado de forma fuerte al contenedor.
 
 ```java
-class Linea {
-	private Punto p1;
-	private Punto p2;
+public final class Punto {
+	private final double x;
+	private final double y;
 
-	public Linea(double x1, double x2, double y1, double y2) {
-			this.p1 = new Punto (x1, y1);
-			this.p2 = new Punto (x2, y2); //así controlo que los puntos no sean creados de antemano, sabemos que no han podido existir antes de que instanciara la línea
+	public Punto(double x, double y) {
+		this.x = x;
+		this.y = y;
 	}
 
-	public Punto getP1() { //(A)
-		return new Punto(this.p1.x, this.p1.y);
-	}
-
-	public Punto getP1Alternativo() { //(B)
-		return this.p1.x;
+	public double distanciaA(Punto otro) {
+		if (otro == null) {
+			throw new IllegalArgumentException("El punto destino no puede ser null");
+		}
+		double dx = otro.x - this.x;
+		double dy = otro.y - this.y;
+		return Math.sqrt(dx * dx + dy * dy);
 	}
 }
 
+// Composicion fuerte: Linea crea y posee sus puntos
+public final class LineaFuerte {
+	private final Punto inicio;
+	private final Punto fin;
+
+	public LineaFuerte(double x1, double y1, double x2, double y2) {
+		this.inicio = new Punto(x1, y1);
+		this.fin = new Punto(x2, y2);
+	}
+
+	public double longitud() {
+		return inicio.distanciaA(fin);
+	}
+}
+
+// Composicion debil (agregacion): Linea referencia puntos externos
+public final class LineaDebil {
+	private final Punto inicio;
+	private final Punto fin;
+
+	public LineaDebil(Punto inicio, Punto fin) {
+		if (inicio == null || fin == null) {
+			throw new IllegalArgumentException("Los puntos no pueden ser null");
+		}
+		this.inicio = inicio;
+		this.fin = fin;
+	}
+
+	public double longitud() {
+		return inicio.distanciaA(fin);
+	}
+}
 ```
+
+Ambas implementaciones calculan la misma longitud, pero representan decisiones de diseño diferentes. Elegir una u otra depende del dominio: si los puntos son partes internas exclusivas de la línea, conviene composición fuerte; si los puntos son entidades compartibles (por ejemplo, nodos geométricos comunes), conviene agregación.
 
 ## 7. En Java, en la composición fuerte, ¿cuando el contenedor destruye los objetos? No se observa que `Linea` destruya los `Punto` explícitamente, ¿Por qué?
 
@@ -313,6 +363,12 @@ public class Profesor {
 		this.nombre = nombre;
 	}
 }
+
+En Java no se destruyen objetos manualmente como en C++ con `delete`. Cuando se habla de que, en composición fuerte, el contenedor "destruye" sus partes, en realidad se está describiendo una consecuencia lógica del modelo: al desaparecer el contenedor, normalmente también se pierden las referencias que mantenían vivas sus partes internas.
+
+La liberación real de memoria la realiza el recolector de basura (GC). El GC elimina objetos cuando ya no son alcanzables desde referencias activas del programa. Por eso no se ve un código explícito en `Linea` que destruya `Punto`: no existe ese mecanismo manual en Java para objetos normales.
+
+En términos prácticos, si no queda ninguna referencia a una `Linea` y los `Punto` internos solo eran accesibles a través de ella, todos pasarán a ser candidatos a recolección. Si, por diseño, alguna de esas partes hubiera escapado mediante referencias externas, ya no se podría hablar de una composición fuerte estricta en la implementación.
 
 
 ***
@@ -371,102 +427,236 @@ public Departamento { //composicion 1: miembros del dpto; array de primitivos
 }
 ```
 
+En este caso se modela una agregación (composición débil): `Profesor` puede existir sin `Departamento`, y un cambio en el departamento no implica destruir profesores. Aun así, `Departamento` mantiene invariantes internas fuertes: debe haber siempre director y ese director debe estar incluido en su lista de profesores.
+
+Para conservar encapsulación, no se expone el array interno ni se devuelve una referencia directa a la estructura de almacenamiento. Se ofrece una API mínima: contar profesores, obtener profesor por posición, añadir al final, eliminar por posición y cambiar director. En cada operación crítica se valida que la invariante se mantenga.
+
+```java
+public final class Profesor {
+	private final String nombre;
+
+	public Profesor(String nombre) {
+		if (nombre == null || nombre.isBlank()) {
+			throw new IllegalArgumentException("El nombre no puede estar vacio");
+		}
+		this.nombre = nombre;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+}
+
+public final class Departamento {
+	private static final int MAX_PROFESORES = 50;
+	private final Profesor[] profesores = new Profesor[MAX_PROFESORES];
+	private int numProfesores;
+	private Profesor director;
+
+	public Departamento(Profesor directorInicial) {
+		if (directorInicial == null) {
+			throw new IllegalArgumentException("Debe existir un director inicial");
+		}
+		profesores[0] = directorInicial;
+		numProfesores = 1;
+		director = directorInicial;
+	}
+
+	public int getNumProfesores() {
+		return numProfesores;
+	}
+
+	public Profesor getProfesor(int pos) {
+		if (pos < 0 || pos >= numProfesores) {
+			throw new IndexOutOfBoundsException("Posicion fuera de rango: " + pos);
+		}
+		return profesores[pos];
+	}
+
+	public Profesor getDirector() {
+		return director;
+	}
+
+	public void addProfesor(Profesor profesor) {
+		if (profesor == null) {
+			throw new IllegalArgumentException("El profesor no puede ser null");
+		}
+		if (numProfesores >= MAX_PROFESORES) {
+			throw new IllegalStateException("Capacidad maxima alcanzada");
+		}
+		profesores[numProfesores] = profesor;
+		numProfesores++;
+	}
+
+	public void setDirector(Profesor nuevoDirector) {
+		if (nuevoDirector == null) {
+			throw new IllegalArgumentException("El director no puede ser null");
+		}
+		if (!contiene(nuevoDirector)) {
+			throw new IllegalArgumentException("El director debe pertenecer al departamento");
+		}
+		director = nuevoDirector;
+	}
+
+	public Profesor removeProfesor(int pos) {
+		if (pos < 0 || pos >= numProfesores) {
+			throw new IndexOutOfBoundsException("Posicion fuera de rango: " + pos);
+		}
+		Profesor eliminado = profesores[pos];
+		if (eliminado == director) {
+			throw new IllegalStateException("No se puede eliminar al director");
+		}
+
+		for (int i = pos; i < numProfesores - 1; i++) {
+			profesores[i] = profesores[i + 1];
+		}
+		profesores[numProfesores - 1] = null;
+		numProfesores--;
+		return eliminado;
+	}
+
+	private boolean contiene(Profesor profesor) {
+		for (int i = 0; i < numProfesores; i++) {
+			if (profesores[i] == profesor) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+```
+
+Nótese que se ha comparado por identidad de referencia (`==`) para representar que el director debe ser exactamente uno de los objetos `Profesor` que ya están en la colección interna. Ese criterio es coherente con la invariante pedida y evita ambigüedades cuando varios profesores pudieran compartir nombre.
+
 
 ## 9. En Java, existen también `List`, cambia y muestra cómo sería el código anterior empleando `List` en vez de arrays primitivos. ¿Qué parte del código original te has ahorrado? Además, fíjate en el método `getProfesor(int pos)`: si en su lugar existiera un método que devolviera todos los profesores a la vez, ¿qué problema tendría devolver directamente la lista interna? ¿Cómo lo resolverías?
 
-```java (versión de List, una lista abstracta)
+Con `List` (por ejemplo, `ArrayList`) se simplifica bastante la implementación porque se delegan en la biblioteca estándar varias tareas mecánicas: desplazamiento de elementos al eliminar, control del tamaño dinámico y operaciones de acceso. La lógica del dominio (invariantes del director) se mantiene, pero desaparece buena parte del código de infraestructura del array.
 
-public class Profesor {
-	private String nombre;
+El código siguiente mantiene las mismas reglas: siempre hay director, el director debe pertenecer al departamento y no se permite eliminar al director directamente. Como se pide encapsulación, no se expone la colección mutable interna al exterior.
 
-	public Profesor(String nombre) {
-		this.nombre = nombre;
+```java
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public final class Departamento {
+	private final List<Profesor> profesores = new ArrayList<>();
+	private Profesor director;
+
+	public Departamento(Profesor directorInicial) {
+		if (directorInicial == null) {
+			throw new IllegalArgumentException("Debe existir un director inicial");
+		}
+		profesores.add(directorInicial);
+		director = directorInicial;
 	}
-}
 
-
-***
-
-public Departamento { //composicion 1: miembros del dpto; lista que solo puede almacenar referencias de tipo Profesor
-	private List<Profesor> profesores = new ArrayList<>(); //Tiene muchas ventajas, con List: Se facilita un tamaño dinámico e ilimitado (y no reservado de antemano), facilita el eliminado (no se necesita gestionar el array) pues se delega en métodos de List.
-
-	//composicion 2: el director
-	private Profesor director; // <-- null
-
-	public Departamento(Profesor director) {
-		//0. Si director es null, lanzo IAE
-		//1. Establezco el atributo director
-		this.director = director;
-
-		//2. Añado el director como primer miembro del departamento, así garantizando a invariante de clase
-		this.profesores[0] = director;
-		numProfesores++;
+	public int getNumProfesores() {
+		return profesores.size();
 	}
-		//3. Poder acceder al listado, con métodos de List
-		public int getNumProfesores() {
-			return this.profesores.size();
 
+	public Profesor getProfesor(int pos) {
+		return profesores.get(pos); // List ya valida rango
+	}
+
+	public Profesor getDirector() {
+		return director;
+	}
+
+	public void addProfesor(Profesor profesor) {
+		if (profesor == null) {
+			throw new IllegalArgumentException("El profesor no puede ser null");
 		}
-		public Profesor getProfesor(int pos) {
-			//si pos no es válida, lanzar AIOBE
-			return this.profesores.get(pos);
+		profesores.add(profesor);
+	}
+
+	public void setDirector(Profesor nuevoDirector) {
+		if (nuevoDirector == null) {
+			throw new IllegalArgumentException("El director no puede ser null");
 		}
-
-		//viniendonos arriba con getters, para todos los profesores
-		public List<Profesor> getProfesores() {
-			return this.profesores;
-		} //El problema de este método es que si devuelvo directamente la lista o el array recibiría una copia de la referencia, permitiendo MUTARLA desde fuera y exponiéndonos a la posibilidad de que se quite el director de la lista y así violar la invariante de clase.
-
-			//si insisto en emplear un getter, devolvemos una copia:
-			// return new ArrayList<>(this.profesores); Esta manera es lenta, O(n) siendo n el orden de la lista.
-
-			//Alternativa B, envolver la lista en una lista no modificable O(1); esta lista tiene una referencia a la original, pero si le llamas a métodos modificadores, no delega en la original y lanza una excepción de tipo UnsupportedOperationException.
-
-			public List<Profesor> getProfesoresSafeFast() {
-			return Collections.unmodifiableList(this.profesores);
+		if (!profesores.contains(nuevoDirector)) {
+			throw new IllegalArgumentException("El director debe pertenecer al departamento");
 		}
+		director = nuevoDirector;
+	}
 
-		/**
-		 Versión insegura con array: 
-
-		 public Profesor[] getProfesores() {
-		 	return this.profesores;
-			}
-		 * /
-
-		//metodos para gestionar el listado y el director
-		public void addProfesor(Profesor p) { //recibo profesor, composicion debil
-			//0. Si p es nulo, lanzar IAE
-			//1. Si está lleno, lanzar otra excepción
-		
-			this.progesores[this.numProfesores] = p;
-			this.numProfesores++;
-
+	public Profesor removeProfesor(int pos) {
+		Profesor eliminado = profesores.get(pos);
+		if (eliminado == director) {
+			throw new IllegalStateException("No se puede eliminar al director");
 		}
-		/** 
-		 Elimina un profesor de la lista, pero no puede ser el director actual.
-		 */
-		 public void eliminarProfesor(int pos) {
-		 	//0. Si pos no es válida, no está entre 0 y numProfesores-1,lanzar IAE
-			//1. Si el profesor a eliminar es el director, lanzamos excepción
-		 	//2. Eliminar el profesor de la posición dada, moviendo los siguientes para tapar el hueco
-			//3. Para eliminarlo del array, hay que hacer la tediosa gestión de desplazar todos los elementos una posición a la izquierda y machacar la posición a eliminar.
-		 }
+		profesores.remove(pos);
+		return eliminado;
+	}
 
-		 public void cambiarDirector(Profesor nuevoDirector) {
-		 	//0. Si nuevoDirector es nulo, lanzar IAE
-		 	//1. Si nuevoDirector no está en el departamento, lanzar IAE
-			// 1.2 alternativamente, el nuevo director de fuera podría ser añadido primero al dpto, y luego establecerlo como director, así garantizando la invariante de clase
-		 	//2. En otro caso el director por el nuevoDirector
-			this.director = nuevoDirector;
-		}
+	public List<Profesor> getProfesores() {
+		return Collections.unmodifiableList(profesores);
+	}
 }
 ```
+
+Si se devolviera directamente la lista interna (`return profesores;`), cualquier cliente podría modificarla desde fuera (`clear`, `remove`, `add`) y romper invariantes sin pasar por las validaciones de la clase. La solución es devolver una vista no modificable (`Collections.unmodifiableList`) o, alternativamente, una copia defensiva (`new ArrayList<>(profesores)`).
 
 ## 10. Al igual que ocurre con las excepciones en Java, que pueden encerrar causas (que son excepciones), de forma recursiva, suponen un tipo especial de composiciones, denominadas composiciones recursivas. Pon un ejemplo en Java de una `Persona`, que sea inmutable, y que tiene una madre, que es otra `Persona`. Haz un main con un ejemplo de uso con una familia de personas, desde el nieto hasta la abuela. Enumera algún otro ejemplo clásico de composiciones recursivas.
 
 ### Respuesta
 
+Una composición recursiva aparece cuando una clase contiene una referencia a la misma clase. En `Persona`, el atributo `madre` también es una `Persona`. Para mantener inmutabilidad se emplean campos `final`, constructor con validaciones y ausencia de métodos *setter*.
+
+El siguiente ejemplo crea tres generaciones (abuela, madre, nieto) y recorre la cadena materna de forma iterativa para mostrar parentescos. Nótese que la recursividad aquí está en la estructura de datos, no en la necesidad obligatoria de usar métodos recursivos para procesarla.
+
+```java
+public final class Persona {
+	private final String nombre;
+	private final Persona madre;
+
+	public Persona(String nombre, Persona madre) {
+		if (nombre == null || nombre.isBlank()) {
+			throw new IllegalArgumentException("El nombre no puede estar vacio");
+		}
+		this.nombre = nombre;
+		this.madre = madre; // Puede ser null si no se conoce/no se modela
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public Persona getMadre() {
+		return madre;
+	}
+}
+
+public class Main {
+	public static void main(String[] args) {
+		Persona abuela = new Persona("Carmen", null);
+		Persona madre = new Persona("Ana", abuela);
+		Persona nieto = new Persona("Luis", madre);
+
+		System.out.println("Nieto: " + nieto.getNombre());
+		System.out.println("Madre: " + nieto.getMadre().getNombre());
+		System.out.println("Abuela: " + nieto.getMadre().getMadre().getNombre());
+
+		Persona actual = nieto;
+		while (actual != null) {
+			System.out.println("Generacion: " + actual.getNombre());
+			actual = actual.getMadre();
+		}
+	}
+}
+```
+
+Otros ejemplos clásicos de composición recursiva son los directorios de un sistema de ficheros (una carpeta contiene archivos y otras carpetas), los nodos de árboles binarios, estructuras XML/HTML anidadas y las excepciones encadenadas en Java mediante `getCause()`.
+
 ## 11. ¿Qué son las relaciones de composición "bidireccionales"? ¿Qué habría que hacer para implementar este tipo de relación en el ejemplo de `Profesor` y `Departamento`?
 
 ### Respuesta
+
+Una relación bidireccional es aquella en la que ambos lados mantienen referencia entre sí. En vez de que solo `Departamento` conozca a sus `Profesor`, cada `Profesor` también conoce a qué `Departamento` pertenece. Así se puede navegar la relación en ambos sentidos: de departamento a profesores y de profesor a departamento.
+
+Para implementarla correctamente no basta con añadir campos en ambas clases; hay que mantener consistencia en todas las operaciones. Por ejemplo, al añadir un profesor al departamento, además de insertarlo en la colección del departamento debe actualizarse en el profesor su referencia al departamento. Al eliminarlo, debe limpiarse esa referencia.
+
+También conviene centralizar cambios de asociación para evitar estados incoherentes (por ejemplo, profesor en la lista de un departamento pero apuntando a otro). Una práctica habitual es restringir setters públicos y ofrecer métodos de dominio como `departamento.addProfesor(p)` y `departamento.removeProfesor(p)` que actualicen ambos extremos de forma atómica, validando invariantes en un único punto.
+
+En el caso del director, la regla "el director pertenece al departamento" se vuelve más fácil de comprobar porque puede validarse en ambos sentidos: `departamento.getDirector()` debe estar en su colección, y ese profesor debe tener como departamento exactamente ese mismo objeto.
