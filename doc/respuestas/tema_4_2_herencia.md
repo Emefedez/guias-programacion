@@ -280,14 +280,14 @@ Aunque este enfoque es válido, desde diseño suele preferirse mantener campos p
 
 ### Respuesta
 
-En muchos lenguajes orientados a objetos existe una clase raíz común para todos los objetos, pero no es una regla universal idéntica en todos los lenguajes.
+En muchos lenguajes orientados a objetos existe una clase raíz común para todos los objetos, pero **no es una regla universal idéntica en todos los lenguajes**.
 
-En Java sí ocurre: la raíz es `java.lang.Object`.
+**En Java sí** ocurre: la raíz es **`java.lang.Object`** _(Hay un `extends Object` implícito)_.
 
 Implicaciones en Java:
 
 1. Toda clase hereda directa o indirectamente de `Object`.
-2. Todos los objetos disponen de métodos comunes como `toString()`, `equals()`, `hashCode()` y `getClass()`.
+2. Todos los objetos disponen de **métodos públicos comunes** como `toString()`, `equals()`, `hashCode()` y `getClass()`. Podemos sobreescribirlos con `@Override`.
 3. Una referencia `Object` puede apuntar a cualquier objeto, con pérdida de especificidad de tipo.
 
 Por tanto, Java sí tiene una clase base universal para los objetos de su sistema de tipos de referencia.
@@ -299,7 +299,7 @@ Por tanto, Java sí tiene una clase base universal para los objetos de su sistem
 
 La **herencia múltiple** de clases consiste en que una clase hereda implementación y estado de más de una superclase a la vez.
 
-En Java **no existe herencia múltiple de clases**. Una clase solo puede extender una clase:
+En Java **no existe herencia múltiple de clases** _(Dato: en C++ sí)_. Una clase solo puede extender una clase:
 
 ```java
 class B extends A { }
@@ -324,13 +324,18 @@ Esta decisión evita ambigüedades clásicas de herencia múltiple de implementa
 ## 9. Las excepciones en los lenguajes orientados a objetos son objetos. Por tanto, se pueden crear excepciones personalizadas. Pon un ejemplo en Java de una excepción personalizada (`UsuarioNoEncontradoException`), que sea *no controlada* y que además este compuesto con un `Usuario`, para saber qué `Usuario` dio el problema. Permite además que se pueda incluir la causa, es decir, sobrecarga el constructor para tener una versión que permita añadir la causa subyacente. 
 
 ### Respuesta
+-> (Excepciones controladas heredad de `Exception` y requieren `try/catch` o `throws` en la firma del método).
 
-Una excepción no controlada es aquella que hereda de `RuntimeException`. Puede crearse una excepción personalizada que encapsule (composición) el objeto `Usuario` que originó el problema y opcionalmente la causa.
+Una excepción no controlada es aquella que hereda de `RuntimeException`. Puede crearse una excepción personalizada que encapsule (composición) el objeto `Usuario` que originó el problema y opcionalmente la causa. 
+
+Esto se hace agregando al método que define la excepción un campo para el parámetro `Usuario` y sobrecargando el constructor para aceptar también una causa. Se hace una sobrecarga, porque se quiere permitir la creación de la excepción con o sin causa.
+
+**Entonces, las excepciones personalizadas, además de tener un nombre más adecuado, pueden transportar información adicional relevante para el manejo de errores.**
 
 Ejemplo:
 
 ```java
-class Usuario {
+class Usuario {es(Dato: en C++ sí)_(Dato: en C++ sí)_p32 derivative
 	private final String id;
 	private final String nombre;
 
@@ -386,6 +391,8 @@ Con esta composición, quien captura la excepción puede recuperar el `Usuario` 
 
 ### Respuesta
 
+**Si sólo necesito reutilizar código debo hacer composición, no herencia. En su defecto, si además necesito heredar comportamiento y abstracción, entonces sí considero la herencia.** Véase un `Cliente` que tiene un `Motor` (composición) frente a un `Vehículo` que es un `Motor` (herencia).
+
 No conviene usar herencia solo para reutilizar código porque la herencia establece una relación semántica fuerte (**es-un**) y un acoplamiento estructural rígido entre clases.
 
 Riesgos principales cuando se usa únicamente por reutilización:
@@ -402,6 +409,14 @@ Por ello, si el objetivo es compartir funcionalidad sin relación "es-un" clara,
 
 ### Respuesta
 
+**Si me vale la composición debo usarla en vez de la herencia dado que la herencia impone una dependencia muy fuerte de las clases que heredan respecto a la clase base. Es decir, la herencia es un compromiso de diseño que puede dificultar la evolución futura.**
+
+-> De hacer composición donde B y C tienen un campo común de tipo A, cambiar el funcionamiento interno de B o C sólo implica cambiar la interfaz pública de A.
+
+-> Si fuese herencia, B y C dependen de la estructura y comportamiento de A, por lo que cualquier cambio en A puede afectar a B y C, incluso si el cambio es interno.
+
+**Es decir, la herencia es menos flexible porque B y C siempre serán un A, no es una condición necesaria para la herencia, donde la referencia de B y C hacia A puede cambiar durante la ejecución.** Por ejemplo, un `Vehículo` puede tener una `Tapicería` que se puede cambiar en tiempo de ejecución (composición), mientras que un `Coche` que hereda de `Vehículo` siempre es un `Vehículo` (herencia).
+
 Se favorece la composición frente a la herencia porque la composición permite ensamblar comportamiento mediante objetos colaboradores, reduciendo acoplamiento y mejorando evolución del diseño.
 
 Ventajas habituales de composición:
@@ -413,6 +428,8 @@ Ventajas habituales de composición:
 5. Facilita pruebas unitarias con dobles de prueba de dependencias.
 
 En términos de diseño, composición permite modelar relaciones **tiene-un**, mientras que herencia exige **es-un**. Cuando ambas podrían aplicarse, composición suele ofrecer mayor mantenibilidad.
+
+**Comentario histórico**: La herencia fue un reclamo atractivo de OOP, pero ha desarrollado una fama tan mala que muchos lenguajes modernos ni siquiera la implementan (véase Rust). La composición sí se sigue implementando en (casi) todo.
 
 
 ## 12. Herencia vs. Composición. Se dice que la *"herencia rompe la encapsulación"*, ¿a qué se refiere esto?
@@ -436,7 +453,7 @@ Esto puede generar clases hijas frágiles y difíciles de mantener. En cambio, c
 
 Se pueden modelar los mismos datos compartidos de dos formas, con consecuencias de diseño distintas.
 
-## Opción A: Herencia (`Persona`)
+## Opción A: Herencia (`Persona`), con `get()`s y toda la parafernalia habitual
 
 ```java
 class Persona {
@@ -484,61 +501,61 @@ class Trabajador extends Persona {
 }
 ```
 
-## Opción B: Composición (`DatosPersonales`)
+## Opción B: Composición (`DatosPersonales`) --> Una composición DatosPersonales puede reducir reutilización (es como pensar al revés), generamos el DatosPersonales desde Estudiante y Trabajador
 
 ```java
 class DatosPersonales {
-	private String dni;
-	private String nombre;
+    private String dni;
+    private String nombre;
 
-	public DatosPersonales(String dni, String nombre) {
-		this.dni = dni;
-		this.nombre = nombre;
-	}
+    public DatosPersonales(String dni, String nombre) {
+        this.dni = dni;
+        this.nombre = nombre;
+    }
 
-	public String getDni() {
-		return dni;
-	}
+    public String getDni() {
+        return dni;
+    }
 
-	public String getNombre() {
-		return nombre;
-	}
+    public String getNombre() {
+        return nombre;
+    }
 }
 
 class EstudianteComp {
-	private DatosPersonales datosPersonales;
-	private String carrera;
+    private DatosPersonales datosPersonales;
+    private String carrera;
 
-	public EstudianteComp(DatosPersonales datosPersonales, String carrera) {
-		this.datosPersonales = datosPersonales;
-		this.carrera = carrera;
-	}
+    public EstudianteComp(String dni, String nombre, String carrera) {
+        this.datosPersonales = new DatosPersonales(dni, nombre);
+        this.carrera = carrera;
+    }
 
-	public DatosPersonales getDatosPersonales() {
-		return datosPersonales;
-	}
+    public DatosPersonales getDatosPersonales() {
+        return datosPersonales;
+    }
 
-	public String getCarrera() {
-		return carrera;
-	}
+    public String getCarrera() {
+        return carrera;
+    }
 }
 
 class TrabajadorComp {
-	private DatosPersonales datosPersonales;
-	private String empresa;
+    private DatosPersonales datosPersonales;
+    private String empresa;
 
-	public TrabajadorComp(DatosPersonales datosPersonales, String empresa) {
-		this.datosPersonales = datosPersonales;
-		this.empresa = empresa;
-	}
+    public TrabajadorComp(String dni, String nombre, String empresa) {
+        this.datosPersonales = new DatosPersonales(dni, nombre);
+        this.empresa = empresa;
+    }
 
-	public DatosPersonales getDatosPersonales() {
-		return datosPersonales;
-	}
+    public DatosPersonales getDatosPersonales() {
+        return datosPersonales;
+    }
 
-	public String getEmpresa() {
-		return empresa;
-	}
+    public String getEmpresa() {
+        return empresa;
+    }
 }
 ```
 
