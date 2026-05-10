@@ -308,3 +308,44 @@ public double calcularLongitud() {
 ## 11. ¿Qué es la **"herencia de interfaces"** en Java? ¿Existe **"herencia múltiple de interfaces"**? Pon un ejemplo de una interfaz `Fichero` que tenga un método para leer su contenido en forma de `String` y luego dicha interfaz sea extendida por otra que sea `FicheroEscribible` que permita enviar contenido e incluso eliminar el fichero.
 
 ### Respuesta
+La **herencia de interfaces** en Java significa que una interfaz puede `extender` a otra(s) interfaz(es), heredando sus métodos (cabeceras). Sí existe **herencia múltiple de interfaces**: una interfaz puede `extends` varias interfaces a la vez (por ejemplo `interface C extends A, B { ... }`) y una clase puede `implementar` varias interfaces simultáneamente. Esto permite componer tipos por comportamiento sin heredar implementación de estado.
+
+Ejemplo:
+
+```java
+public interface Fichero {
+  String leerContenido() throws java.io.IOException;
+}
+
+public interface FicheroEscribible extends Fichero {
+  void escribirContenido(String contenido) throws java.io.IOException;
+  boolean eliminar() throws java.io.IOException;
+}
+
+// Implementación de ejemplo
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
+public class FicheroLocal implements FicheroEscribible {
+  private final Path ruta;
+  public FicheroLocal(Path ruta) { this.ruta = ruta; }
+
+  @Override
+  public String leerContenido() throws java.io.IOException {
+    return Files.readString(ruta);
+  }
+
+  @Override
+  public void escribirContenido(String contenido) throws java.io.IOException {
+    Files.writeString(ruta, contenido, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+  }
+
+  @Override
+  public boolean eliminar() throws java.io.IOException {
+    return Files.deleteIfExists(ruta);
+  }
+}
+```
+
+Notas breves: desde Java 8 las interfaces pueden declarar métodos `default` con implementación; si hay conflictos (método `default` con la misma firma en varias interfaces) el compilador obliga a la clase implementadora a resolverlo mediante una implementación concreta o a especificar cuál usar. Las reglas de resolución (método de clase > default de interfaz, y especificidad entre interfaces) evitan los problemas clásicos de la herencia múltiple de implementación.
