@@ -12,7 +12,7 @@ float raiz(float num) {
     return -1.0; //devuelvo un valor especial, esto significa error
   } else {
     return sqrt(num); //funcionamiento normal
-  }
+  } 
 }
 ```
 ```C 
