@@ -232,7 +232,11 @@ Aquí la lambda actúa como un valor literal de tipo función. El método `trans
 
 ### Respuesta
 
-La `closure` es independiente de Java, para ser plenamente funcional, una expresión lambda debe capturar las variables del contexto **donde fue declarada** (variables en el texto "próximo" a donde se expresa la función) **[OJO, CONTEXTO DONDE SE DECLARA != CONTEXTO DONDE SE LLAMA]**. Por ejemplo, imaginemos que se declara en el main y empleamos una variable local `saludo` que se concatena a la cadena de entrada; a pesar de que haya una variable `saludo` también donde es llamada para asistir, mantiene preferencia la del contexto inicial.
+La `closure` es independiente de Java, para ser plenamente funcional, una expresión lambda debe capturar las variables del contexto **donde fue declarada** (variables en el texto "próximo" a donde se expresa la función).
+
+👁️ **[OJO, CONTEXTO DONDE SE DECLARA != CONTEXTO DONDE SE LLAMA]**
+
+Por ejemplo, imaginemos que se declara en el main y empleamos una variable local `saludo` que se concatena a la cadena de entrada; a pesar de que haya una variable `saludo` también donde es llamada para asistir, mantiene preferencia la del contexto inicial.
 
 ```java
 public static Function<Double, Double> crearDescuento(int descuento) {
@@ -379,6 +383,7 @@ Java trae muchas interfaces funcionales ya preparadas en el paquete `java.util.f
 - `BiPredicate<T, U>`: condición sobre dos valores.
 - `UnaryOperator<T>`: transforma un valor `T` en otro `T`.
 - `BinaryOperator<T>`: combina dos valores del mismo tipo `T` y devuelve otro `T`.
+- `Runnable`: no recibe nada ni devuelve nada, solo ejecuta código.
 
 Además existen variantes primitivas para evitar boxing innecesario, como:
 - `IntUnaryOperator`, `IntPredicate`, `IntConsumer`
@@ -396,13 +401,8 @@ import java.util.List;
 
 public class EjemploForEach {
     public static void main(String[] args) {
-        List<Integer> numeros = List.of(-3, 0, 5, 8, -1);
-
-        numeros.forEach(n -> {
-            if (n > 0) {
-                System.out.println(n + " es positivo");
-            }
-        });
+        List<Integer> numeros = List.of(7,3,1,4);
+        numeros.forEach(numero -> if (n > 0) System.out.println(numero + " es positivo")); // esto es un Consumer
     }
 }
 ```
@@ -416,9 +416,30 @@ Esto es una forma más declarativa de recorrer la colección que un `for` tradic
 ### Respuesta
 La firma de `forEach` usa `Consumer<? super T>` porque el consumidor no necesita ser exactamente de tipo `T`; basta con que pueda aceptar `T` o algún supertipo suyo. Eso lo hace más flexible.
 
+`Consumer<? super T>` hace que si le paso Militares, estos sean vistos como Personas.
+
 La regla PECS significa:
 - Producer Extends
 - Consumer Super
+
+```java
+Lista<Persona> personas = {/*...*/};
+
+/* personas.forEach(c) // espera un Consumer< ? super Persona>
+ * Consumer<Persona> miConsumer = p -> p.metodoDeP();
+ * Consumer<Object> miConsumer2 = o -> System.out.println(o.toString());
+ *
+ * personas.forEach(miConsumer);
+ */
+personas.forEach(miConsumer2);
+personas.soloLosQue(p -> instanceOfMilitar).transformar(p -> (Militar)p).paraCada(m -> { // este soloLosQue devuelve una lista de Persona de solo militares, podemos castearlo de manera segura y ya verificada
+        if m.instanceOf(Artillero) {
+            // ...
+        } else if m.instanceOf(Francotirador) {
+            // ...
+            } //...
+    });
+```
 
 La idea es sencilla:
 - Si una estructura produce valores para nosotros, usamos `extends`.
@@ -439,6 +460,75 @@ Con eso, si tengo un valor de tipo `String`, puedo usar una función que acepte 
 ## 16. Referencias a métodos. Podemos obtener una referencia a métodos de objetos o clases. Pon un ejemplo en JavaScript y en Java, de una clase `Persona` con un método `saludar`. En el código principal, crea una `Persona` con un nombre, y obtén una referencia a su método `saludar` en una variable local. Invoca `saludar` con esa referencia a su método `saludar`.
 
 ### Respuesta
+
+* Una interfaz funcional puede ser instanciada:
+    1. [**BASTANTE ÚTIL**] Con una expresión lambda.
+    2. [**NO SE USA**] Con mi propia clase que implemente la interfaz funcional.
+        - `Function<Integer, Integer> f = new MiFuncionSobreEnteros()`
+        - ```java
+            public class MiFuncionSobreEnteros implements Function<Integer,Integer> {
+                public Integer apply (Integer i) {
+                    return  /*...*/ ;
+                }
+            }
+            ```
+    3. [**MUY ÚTIL**] Referencias a métodos (`::`).
+        - Ideal para no tener que pasar lambda.
+        - **HAY 4 CASOS:**
+
+* Expansión de referencias a métodos:
+    ```java
+    class Persona {
+        public Persona(String nombre) {
+            /* ... */
+        }
+        public static Integer cuantasHay() {
+            return /* ... */
+        }
+        public boolean haViajadoA(Ciudad c) {
+            /* ... */
+            return state;
+        }
+
+        public Double getSalario() {
+            return /* ... */
+        }
+    }
+    ```
+1. CASO 1: **Referencia a método estático** (`Clase::método`)
+    - No ponemos paréntesis en el método pues lo referenciamos, no lo llamamos.
+    - Ejemplo: `Persona::cuantasHay` -(encaja con)->  `Supplier<Integer>`
+2. CASO 2: **Referencia a constructor** (`Clase::new`)
+    - Ejemplo: `Persona::new` -(encaja con)->  `Function<String, Persona>`
+2. CASO 3: **Referencia a método de instance** (`Clase::método`)
+    - Si el método **no tiene instancia conocida (véase, no ser `static` y no tener instancia previa):**
+        - Ejemplo: `pepe::haViajadoA` -(encaja con)->  `BiPredicate<Persona, Ciudad>`
+     - Si el método no **tiene instancia conocida:**
+        - Ejemplo: `pepe::haViajadoA` -(encaja con)->  `Predicate<Ciudad>`
+    - OJO, también podríamos usar `BiFunction`s en vez de `Predicate`s.
+
+
+*  Con expresiones lambda (`Function<String,Persona>`):
+```java
+    Lista<String> nombres List.of("Ana", "Juan", "María");
+    Lista<Persona> personas = nombres.transformar(nombre -> new Persona(nombre)); // llamo al constructor con función lambda
+```
+*  Con llamada a método (`Persona::new`):
+```java
+    Lista<String> nombres List.of("Ana", "Juan", "María");
+    Lista<Persona> personas = nombres.transformar(Persona::new); // los transformo en nuevas personas llamando al constructor
+```
+Otro ejemplo...
+* Con referencia a método:
+```java
+    Lista<Double> salarios = personas.transformar(Persona::getSalario()); // 3.1 Interfaz funcional sin instancia conocida -(encaja con)-> Function<Persona, Double>
+```
+* Sin referencia a método:
+```java
+    Lista<Double> salarios = personas.transformar(p -> p.getSalario()); // 3.1 Interfaz funcional sin instancia conocida -(encaja con)-> Function<Persona, Double>. ¡Sigue siendo lo mismo pero con otra sintaxis!
+    // Ojo, que en el parámetro de tipo no se pueden meter primitivos, por eso hacemos el boxing previo de Double
+```
+
 Las referencias a métodos son una forma compacta de expresar una lambda cuando ya existe un método compatible.
 
 Java:
@@ -578,11 +668,10 @@ public class PersonaOrdenacion {
         personas.add(new Persona("Ana", 25));
         personas.add(new Persona("Bea", 25));
 
-        Comparator<Persona> porEdadYNombre = Comparator
-            .comparingInt(Persona::getEdad)
-            .thenComparing(Persona::getNombre);
+        //Comparator<Persona> porEdadYNombre = Comparator.comparingInt(Persona::getEdad).thenComparing(Persona::getNombre);
+        //Collections.sort(personas, porEdadYNombre);
 
-        Collections.sort(personas, porEdadYNombre);
+        Collections.sort(personas, Comparator.comparing(Persona::getEdad).thenComparing(Persona::getEdad)); // las personas se organizan según su edad y, de haber empate, el nombre alfabéticamente
     }
 }
 ```
